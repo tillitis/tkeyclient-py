@@ -85,17 +85,14 @@ def create_frame(cmd: fwCommand, frame_id: int, endpoint: int, data: bytes = byt
         raise error.TKeyProtocolError('Frame ID must not exceed two bits [0..3]')
     if cmd.length > 3:
         raise error.TKeyProtocolError('Length value must not exceed two bits [0..3]')
-    if data and len(data) > PROTO_DATA_LENGTH[cmd.length]:
+    if data and len(data) > byte_length(cmd.length):
         raise error.TKeyProtocolError('Data exceeds command data length in header')
 
     # Put frame id, endpoint and length in frame header byte
     header = (frame_id << 5) | (endpoint << 3) | cmd.length
 
-    # Lookup command length in bytes from the length bits
-    data_length = PROTO_DATA_LENGTH[cmd.length]
-
     # Create protocol frame with size of header + command length
-    frame = bytearray(1 + data_length)
+    frame = bytearray(1 + byte_length(cmd.length))
 
     frame[0] = header  # Set header byte
     frame[1] = cmd.id  # Set command byte
@@ -115,7 +112,7 @@ def parse_header(header: int) -> Tuple[int, int, int, int]:
     frame_id = (header >> 5) & 3
     endpoint = (header >> 3) & 3
     status   = (header >> 2) & 3
-    length   = PROTO_DATA_LENGTH[(header & 3)]
+    length   = (header & 3)
 
     return frame_id, endpoint, status, length
 
@@ -187,7 +184,8 @@ def read_frame(conn: serial.Serial) -> bytes:
     debug_marks = { 0: 'Header' }
 
     header = data[0]
-    frame_id, endpoint, status, length = parse_header(header)
+    frame_id, endpoint, status, cmd_len = parse_header(header)
+    length = byte_length(cmd_len)
 
     # If status was NOK, throw away remaining data and raise exception
     if status == 1:
@@ -248,6 +246,17 @@ def ensure_frames(command: bytes, response: bytes) -> bool:
             return False
 
     return True
+
+
+def byte_length(index: int) -> int:
+    """
+    Return the byte value corresponding to length bit from header
+
+    """
+    if index + 1 > len(PROTO_DATA_LENGTH):
+        raise error.TKeyProtocolError('Invalid command length value')
+
+    return PROTO_DATA_LENGTH[index]
 
 
 def debug_print(frame: bytes, header: str = str(), marks: dict = {}) -> None:
