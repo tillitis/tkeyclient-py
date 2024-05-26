@@ -2,13 +2,8 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """High-level module for interacting with the TKey device.
 
-This module exports a TKey class with methods that represent commands supported
-by the device.
-
-Typical usage example:
-
-  tkey = TKey('/dev/ttyACM0', connect=True)
-  name0, name1, version = tkey.get_name_version()
+This module exports a TKey class with methods for commands supported by the
+device.
 """
 
 import io
@@ -22,20 +17,18 @@ import tkeyclient.proto as proto
 
 
 # Defaults for serial communication with the TKey
-DEFAULT_SPEED = 62500
-DEFAULT_TIMEOUT = 1
-APP_MAXSIZE = 100 * 1024
+DEFAULT_SPEED: int = 62500
+DEFAULT_TIMEOUT: int = 1
+
+# Max size for applications to load onto TKey
+APP_MAXSIZE: int = 100 * 1024
 
 
 class TKey:
-    """TKey device class implementation.
+    """Class implementation of a TKey.
 
-    Class instance represents a TKey device, with methods that corresponds to
-    the commands supported by the device.
-
-    By default, the instance will not be connected to the TKey device. Use the
-    connect() instance method or pass connect=True as an argument when creating
-    the instance.
+    An instance of this class represents a TKey device, with methods that
+    corresponds to the commands supported by the TKey.
     """
 
     conn: serial.Serial
@@ -57,6 +50,33 @@ class TKey:
 
         Raises:
             TKeyConfigError: If serial device parameters are invalid.
+
+        Warning: Connection
+            By default, the connection to the TKey device will not be opened upon
+            creating an instance. Use the `connect()` method after creating the
+            instance, or pass `connect=True` as an argument when creating the
+            instance.
+
+        Examples:
+            >>> import tkeyclient.tkey as TKey
+            >>> tkey = TKey('/dev/ttyACM0')
+            >>> tkey.connect()
+            >>> tkey.test()
+            True
+            >>> tkey.get_udi_string()
+            '0:1337:2:1:00000042'
+
+            >>> import tkeyclient.tkey as TKey
+            >>> with TKey('/dev/ttyACM0', connect=True) as tkey:
+            ...     # In context, test if connected
+            ...     tkey.test()
+            ...     tkey.get_name_version()
+            ...
+            True
+            ('tk1', 'mkdf', 5)
+            >>> # No longer in context, test if connected
+            >>> tkey.test()
+            False
         """
         self.conn = serial.Serial()
 
@@ -113,6 +133,15 @@ class TKey:
 
         Returns:
             True if serial connection to device is currently open.
+
+        Examples:
+            >>> tkey = TKey('/dev/ttyACM0')
+            >>> tkey.connect()
+            >>> tkey.test()
+            True
+            >>> tkey.disconnect()
+            >>> tkey.test()
+            False
         """
         return self.conn.is_open
 
@@ -120,13 +149,13 @@ class TKey:
         """Retrieve name and version of the device and firmware.
 
         Returns:
-            A tuple with integers representing the following values:
+            Device model
+            Firmware name
+            Firmware version
 
-                name0, name1, version
-
-                name0:   Device model
-                name1:   Firmware name
-                version: Firmware version
+        Examples:
+            >>> tkey.get_name_version()
+            ('tk1', 'mkdf', 5)
         """
         response = proto.send_command(
             self.conn, proto.cmdNameVersion, proto.ENDPOINT_FW, 2
@@ -141,6 +170,9 @@ class TKey:
 
         return name0, name1, version
 
+    # Data structure for FW_RSP_GET_UDI (0x09)
+    # ========================================
+    #
     # Reserved           4 bits
     # Vendor             1 byte
     # Product ID         6 bits
@@ -148,6 +180,7 @@ class TKey:
     # Serial number      2 bytes
     #
     # Total              4 bytes (32 bits)
+
     def get_udi(self) -> tuple[int, int, int, int, int]:
         """Retrieve unique device identifier (UDI) of the device.
 
@@ -157,13 +190,15 @@ class TKey:
         details concatenated in a more useful format.
 
         Returns:
-            A tuple with integers representing the following values:
+            Reserved (unused)
+            Vendor ID
+            Product ID
+            Product revision
+            Serial number
 
-                reserved    Currently unused
-                vendor      Vendor ID
-                pid         Product ID
-                revision    Product revision
-                serial      Serial number
+        Examples:
+            >>> tkey.get_udi()
+            (0, 4919, 2, 1, 391)
         """
         response = proto.send_command(self.conn, proto.cmdGetUDI, proto.ENDPOINT_FW, 2)
 
@@ -193,15 +228,16 @@ class TKey:
         Returns:
             A string with hexadecimal values of the UDI for the device.
 
-        Example:
-            0:1337:2:1:00000042
+        Examples:
+            >>> tkey.get_udi_string()
+            '0:1337:2:1:00000042'
         """
         reserved, vendor, pid, revision, serial = self.get_udi()
         return '{0:01x}:{1:04x}:{2:x}:{3:x}:{4:08x}'.format(
             reserved, vendor, pid, revision, serial
         )
 
-    def load_app(self, file, secret=None) -> None:
+    def load_app(self, file: str, secret: str | None = None) -> None:
         """Load an application onto the device.
 
         Args:

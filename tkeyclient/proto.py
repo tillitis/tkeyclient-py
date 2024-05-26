@@ -132,12 +132,10 @@ def parse_header(header: int) -> tuple[int, int, int, int]:
         header: The header byte, as an integer
 
     Returns:
-        A tuple with integers representing the following values:
-
-            frame_id    Frame ID tag (0-3)
-            endpoint    Endpoint number (0-3)
-            status      0 = OK, 1 = Not OK (NOK)
-            length      Response data length
+        Frame ID tag
+        Endpoint number
+        Status (0 = OK, 1 = Not OK)
+        Data length
     """
     frame_id = (header >> 5) & 3
     endpoint = (header >> 3) & 3
@@ -369,5 +367,5 @@ def debug_frame(frame: bytes, marks: dict | None = None) -> None:
 
 
 def debug_enabled() -> bool:
-    """Return True if TKEY_DEBUG environment variable is set to 1."""
+    """Return `True` if `TKEY_DEBUG` environment variable is set to `1`."""
     return os.getenv('TKEY_DEBUG', None) == '1'

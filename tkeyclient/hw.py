@@ -20,7 +20,13 @@ USB_PID = 0x8887
 def find_device() -> ListPortInfo:
     """Return the first usable TKey device found.
 
-    Will raise a TKeyDeviceError exception if no device was found.
+    Will raise a `TKeyDeviceError` exception if no device was found.
+
+    Returns:
+        An instance of `serial.ListPortInfo` for the first TKey found.
+
+    Raises:
+        TKeyDeviceError: No TKey devices were found
     """
     devices = list_devices()
     if not devices:
@@ -30,10 +36,21 @@ def find_device() -> ListPortInfo:
 
 
 def list_devices() -> list[ListPortInfo]:
-    """Return a list of device paths to TKeys connected."""
+    """Return a list with serial device info for all TKeys connected.
+
+    Returns:
+        A list of `serial.ListPortInfo` instances for all TKey devices found.
+    """
     return sorted(filter(filter_device, list_ports.comports()))
 
 
 def filter_device(d: ListPortInfo) -> bool:
-    """Return True if serial port belongs to a TKey device."""
+    """Return `True` if serial port belongs to a TKey device.
+
+    Args:
+        d: An instance of `serial.ListPortInfo`
+
+    Returns:
+        `True` if the `serial.ListPortInfo` instance represents a TKey device.
+    """
     return d.vid == USB_VID and d.pid == USB_PID

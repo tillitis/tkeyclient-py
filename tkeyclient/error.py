@@ -5,7 +5,7 @@
 # fmt: off
 
 class TKeyError(Exception):
-    """Base class for TKey exceptions to inherit from."""
+    """Base class for exceptions raised by package."""
     pass
 
 class TKeyConnectionError(TKeyError):
