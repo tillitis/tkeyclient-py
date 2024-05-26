@@ -24,6 +24,3 @@ mkdocstrings = {extras = ["python"], version = "*"}
 mkdocs-material = "*"
 markdown = "*"
 pygments = "*"
-
-[requires]
-python_version = "3.12"

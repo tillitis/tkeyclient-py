@@ -1,0 +1,45 @@
+# Workflow for running test suite
+name: Run test suite
+
+on:
+  # Run on push events to main branch
+  push:
+    branches:
+      - main
+
+  # Allows you to run this workflow manually
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+
+# Allow only one concurrent run per branch - cancel any runs in progress if a
+# new run is triggered.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        python_version: [ '3.8', '3.9', '3.10', '3.11', '3.12' ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: 'Install Python ${{ matrix.python_version }}'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python_version }}'
+      - name: Install dependencies
+        run: |
+          python -m pip install pipenv
+          make install_dev
+      - name: Run linter
+        run: |
+          pipenv run make lint
+      - name: Run test suite
+        run: |
+          pipenv run make test
