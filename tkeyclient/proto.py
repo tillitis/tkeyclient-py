@@ -244,6 +244,9 @@ def ensure_frames(command: bytes, response: bytes) -> bool:
     elif cid == cmdLoadAppData.id:
         if not rid in [rspLoadAppData.id, rspLoadAppDataReady.id]:
             return False
+    elif cid == cmdGetUDI.id:
+        if not rid == rspGetUDI.id:
+            return False
 
     return True
 
