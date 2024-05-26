@@ -1,10 +1,12 @@
 # Copyright (C) 2022-2024 - Tillitis AB
 # SPDX-License-Identifier: GPL-2.0-only
 
-import serial
+import os
 
 from typing import Tuple
 from collections import namedtuple
+
+import serial
 
 import tkeyclient.error as error
 
@@ -117,6 +119,12 @@ def write_frame(conn: serial.Serial, data: bytes) -> int:
     """
     written = 0
 
+    if debug_enabled():
+        print('write_frame(): Sending data:')
+        print('============================\n')
+        debug_frame(data)
+        print('')
+
     try:
         written = conn.write(data)
         if written == None:
@@ -142,6 +150,12 @@ def read_frame(conn: serial.Serial) -> bytes:
 
     if len(data) < 1:
         raise error.TKeyReadError('No response data')
+
+    if debug_enabled():
+        print('read_frame(): Received data:')
+        print('============================\n')
+        debug_frame(data)
+        print('')
 
     header = data[0]
     frame_id, endpoint, status, length = parse_header(header)
@@ -203,4 +217,12 @@ def debug_frame(frame: bytes) -> None:
 
     """
     for i, d in enumerate(frame):
-        print('Byte {0}: Binary: {1:b} Hex: 0x{1:x}'.format(i + 1, d))
+        print('Byte {0:0>3}:  {1:0>8b}  0x{1:0>2x}'.format(i + 1, d))
+
+
+def debug_enabled() -> bool:
+    """
+    Return True if TKEY_DEBUG environment variable is set to 1
+
+    """
+    return True if os.getenv('TKEY_DEBUG', None) == "1" else False
