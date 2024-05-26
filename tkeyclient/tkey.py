@@ -26,12 +26,17 @@ class TKey:
         """
         Create new instance of a TKey object
 
+        Raises:
+            TKeyConfigError: If serial device parameters are invalid.
         """
         self.conn = serial.Serial()
 
-        self.conn.port = device
-        self.conn.baudrate = speed
-        self.conn.timeout = timeout
+        try:
+            self.conn.port = device
+            self.conn.baudrate = speed
+            self.conn.timeout = timeout
+        except ValueError as e:
+            raise error.TKeyConfigError(e)
 
         # Open serial port if requested
         if connect == True:
@@ -62,6 +67,8 @@ class TKey:
         """
         Open connection to the given serial device
 
+        Raises:
+            TKeyConnectionError: If serial device cannot be opened.
         """
         try:
             self.conn.open()
