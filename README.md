@@ -147,21 +147,21 @@ Automatically:
 ### Get device model and version
 
 ```
-$ python3 ./client.py version /dev/ttyACM0
+$ python3 ./client.py version -d /dev/ttyACM0
 2024-05-05 22:14:47,883 - [INFO] cmd: Firmware name0:tk1 name1:mkdf version:5
 ```
 
 ### Get unique device identifier (UDI)
 
 ```
-$ python3 ./client.py udi /dev/ttyACM0
+$ python3 ./client.py udi -d /dev/ttyACM0
 2024-05-08 23:40:26,973 - [INFO] cmd: Got UDI: 0:1337:2:1:00000187
 ```
 
 ### Load application onto device
 
 ```
-$ python3 ./client.py load /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/app.bin   
+$ python3 ./client.py load -d /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/app.bin   
 2024-05-05 22:16:09,055 - [INFO] cmd: Application loaded: /home/user/src/tillitis/tkey-testapps/apps/blink/app.bin
 ```
 
@@ -172,7 +172,7 @@ received over the serial port will be printed out in binary and hexadecimal
 values:
 
 ```
-$ TKEY_DEBUG=1 python3 ./client.py load /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/app.bin 
+$ TKEY_DEBUG=1 python3 ./client.py load -d /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/app.bin 
 write_frame(): Sending data:
 ============================
 
