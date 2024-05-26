@@ -13,6 +13,25 @@ be used to do the following:
 The protocol implementation will start with the parts required to perform the
 above, but it may be extended in the future.
 
+## Requirements
+
+This project depends on [pySerial](https://pyserial.readthedocs.io/en/latest/index.html), a package for using serial ports.
+
+## Install
+
+Use pipenv to install the requirements listed in `Pipfile` in a virtual
+environment:
+
+```
+$ pipenv install
+```
+
+Activate the virtual environment to run the client in:
+
+```
+$ pipenv shell
+```
+
 ## Usage
 
 At the moment the package offers a TKey object that can be instantiated by
