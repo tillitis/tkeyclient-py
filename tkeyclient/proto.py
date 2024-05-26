@@ -9,17 +9,6 @@ import tkeyclient.error as error
 ENDPOINT_FW = 2
 ENDPOINT_APP = 3
 
-# ID values for command and response frames
-FW_CMD_NAME_VERSION = 0x01
-FW_RSP_NAME_VERSION = 0x02
-FW_CMD_LOAD_APP = 0x03
-FW_RSP_LOAD_APP = 0x04
-FW_CMD_LOAD_APP_DATA = 0x05
-FW_RSP_LOAD_APP_DATA = 0x06
-FW_RSP_LOAD_APP_DATA_READY = 0x07
-FW_CMD_GET_UDI = 0x08
-FW_RSP_GET_UDI = 0x09
-
 # Named tuples for command and response frames
 fwCommand = namedtuple('fwCommand', ['id', 'length'])
 
@@ -30,7 +19,6 @@ rspLoadApp          = fwCommand(0x04, 1)
 cmdLoadAppData      = fwCommand(0x05, 3)
 rspLoadAppData      = fwCommand(0x06, 1)
 rspLoadAppDataReady = fwCommand(0x07, 3)
-
 
 # Data lengths for use with command/response frames
 PROTO_DATA_LENGTH = [

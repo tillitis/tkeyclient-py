@@ -62,8 +62,8 @@ class TKey:
 
         """
         endpoint = proto.ENDPOINT_FW
-        cmd_id   = proto.FW_CMD_NAME_VERSION
-        length   = 0
+        cmd_id   = proto.cmdNameVersion.id
+        length   = proto.cmdNameVersion.length
         frame_id = 2
 
         frame = proto.create_frame(cmd_id, frame_id, endpoint, length)
@@ -91,8 +91,8 @@ class TKey:
 
         """
         endpoint = proto.ENDPOINT_FW
-        cmd_id   = proto.FW_CMD_LOAD_APP
-        length   = 3
+        cmd_id   = proto.cmdLoadApp.id
+        length   = proto.cmdLoadApp.length
         frame_id = 2
 
         # Create header and command bytes
@@ -144,8 +144,8 @@ class TKey:
 
         """
         endpoint = proto.ENDPOINT_FW
-        cmd_id   = proto.FW_CMD_LOAD_APP_DATA
-        length   = 3
+        cmd_id   = proto.cmdLoadAppData.id
+        length   = proto.cmdLoadAppData.length
         frame_id = 2
 
         # Create header and command bytes
@@ -179,9 +179,9 @@ class TKey:
             if status == 1:
                 raise error.TKeyLoadError('Bad status when writing (1 = STATUS_BAD)')
 
-            if response_id == proto.FW_RSP_LOAD_APP_DATA_READY:
+            if response_id == proto.rspLoadAppDataReady.id:
                 digest = bytes(response[3:][:32])
-            elif not response_id == proto.FW_RSP_LOAD_APP_DATA:
+            elif not response_id == proto.rspLoadAppData.id:
                 raise error.TKeyProtocolError('Unexpected response code (%d)' % response_id)
 
         return digest
