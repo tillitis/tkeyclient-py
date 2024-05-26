@@ -45,6 +45,9 @@ from tkeyclient.tkey import TKey
 # With default baud rate and timeout values
 tk = TKey('/dev/ttyACM0')
 
+# With serial connection already opened
+tk = TKey('/dev/ttyACM0', connect=True)
+
 # With baud rate set to 9600 bps and timeout set to 5 seconds
 tk = TKey('/dev/ttyACM0', speed=9600, timeout=5)
 
@@ -68,6 +71,26 @@ tk.load_app('blink.bin', secret='setecastronomy')
 
 # Close serial connection to device
 tk.disconnect()
+```
+
+### Context management
+
+The `TKey` class can also be used as a context manager, which may be more
+convenient as you don't have to open and close the serial connection manually -
+it is done by the context manager, even if an exception occurs.
+
+**NOTE:** You need to pass `connection=True` as an argument to automatically
+connect, but the connection will always be closed after the context ends.
+
+```Python
+# Import the package
+from tkeyclient.tkey import TKey
+
+# Create instance within a local context
+with TKey('/dev/ttyACM0', connect=True) as tk:
+
+    # Load binary application onto device
+    tk.load_app('blink.bin')
 ```
 
 ## Methods

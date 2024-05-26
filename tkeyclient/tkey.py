@@ -22,7 +22,7 @@ class TKey:
 
     conn: serial.Serial
 
-    def __init__(self, device, speed=DEFAULT_SPEED, timeout=DEFAULT_TIMEOUT):
+    def __init__(self, device, speed=DEFAULT_SPEED, timeout=DEFAULT_TIMEOUT, connect=False):
         """
         Create new instance of a TKey object
 
@@ -32,6 +32,30 @@ class TKey:
         self.conn.port = device
         self.conn.baudrate = speed
         self.conn.timeout = timeout
+
+        # Open serial port if requested
+        if connect == True:
+            self.connect()
+
+
+    def __enter__(self):
+        """
+        Entry point for a TKey context manager
+
+        """
+        return self
+
+
+    def __exit__(self, type, value, traceback):
+        """
+        Exit point for a TKey context manager
+
+        """
+        # Close serial port if opened
+        if self.test():
+            self.disconnect()
+
+        return False
 
 
     def connect(self) -> None:
