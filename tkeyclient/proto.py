@@ -152,8 +152,8 @@ def read_frame(conn: serial.Serial) -> bytes:
         raise error.TKeyReadError('No response data')
 
     if debug_enabled():
-        print('read_frame(): Received data:')
-        print('============================\n')
+        print('read_frame(): Received header:')
+        print('==============================\n')
         debug_frame(data)
         print('')
 
@@ -167,6 +167,12 @@ def read_frame(conn: serial.Serial) -> bytes:
 
     # Read all the remaining data
     data = conn.read(length)
+
+    if debug_enabled():
+        print('read_frame(): Received data:')
+        print('============================\n')
+        debug_frame(data)
+        print('')
 
     # Ensure data matches length from header
     if not len(data) == length:
