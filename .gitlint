@@ -1,0 +1,8 @@
+[general]
+# Ignore rules
+ignore=author-valid-email
+# Enable contrib rules (comma-separated list)
+contrib=contrib-title-conventional-commits
+
+[body-min-length]
+min-length=5
