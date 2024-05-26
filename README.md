@@ -4,19 +4,14 @@ This is a Python package for interacting with the Tillitis TKey.
 
 ## Purpose
 
-The goal is to implement the TKey protocol, including a small client that can
-be used to do the following:
+The goal is to implement the TKey protocol, including a small client.
 
-- Get the name and version
-- Load an application (with optional user-supplied secret)
-
-The protocol implementation will start with the parts required to perform the
-above, but it may be extended in the future.
+**Update:** As of 2024-05-08, the currently documented TKey protocol has been
+implemented.
 
 ## TODO
 
 - Actually make this a real package that can be distributed and installed.
-- Implement remaining commands.
 
 ## Requirements
 
@@ -59,6 +54,12 @@ tk.connect()
 # Get device version details
 model, name, version = tk.get_name_version()
 
+# Get unique device identifier (UDI)
+reserved, vendor, pid, revision, serial = tk.get_udi()
+
+# Get unique device identifier (UDI) as hex string
+udi_hex = tk.get_udi_string()
+
 # Load binary application onto device
 tk.load_app('blink.bin')
 
@@ -80,6 +81,8 @@ device:
 | `TKey.disconnect` | Close serial connection to device | `None` |
 | `TKey.test` | Verify that serial port can be opened | `bool` |
 | `TKey.get_name_version` | Get device model, name and version | `str, str, int` |
+| `TKey.get_udi` | Get unique device identifier (UDI) | `int, int, int, int, int` |
+| `TKey.get_udi_string` | Get unique device identifier (UDI) in hex | `str` |
 | `TKey.load_app` | Load application onto device | `None` |
 
 ## Client
@@ -98,6 +101,7 @@ positional arguments:
     test         Check if given serial port can be opened
     load         Load application onto device
     version      Get the name and version of stick
+    udi          Get the unique device identifier (UDI)
 
 options:
   -h, --help     show this help message and exit
@@ -111,6 +115,13 @@ Copyright (c) 2024 Tillitis AB - https://tillitis.se
 ```
 $ python3 ./client.py version /dev/ttyACM0
 2024-05-05 22:14:47,883 - [INFO] cmd: Firmware name0:tk1 name1:mkdf version:5
+```
+
+### Get unique device identifier (UDI)
+
+```
+$ python3 ./client.py udi /dev/ttyACM0
+2024-05-08 23:40:26,973 - [INFO] cmd: Got UDI: 0:1337:2:1:00000187
 ```
 
 ### Load application onto device

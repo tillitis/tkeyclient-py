@@ -36,6 +36,9 @@ if __name__ == '__main__':
     cmd_version = subparsers.add_parser('version', help='Get the name and version of stick', parents=[parser_dev])
     cmd_version.set_defaults(func=cmd.get_name_version)
 
+    cmd_udi = subparsers.add_parser('udi', help='Get the unique device identifier (UDI)', parents=[parser_dev])
+    cmd_udi.set_defaults(func=cmd.get_udi)
+
     args = parser.parse_args()
 
     logger = log.create_logger('root', 'DEBUG' if args.verbose else 'INFO')

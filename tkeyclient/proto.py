@@ -25,6 +25,8 @@ rspLoadApp          = fwCommand(0x04, 1)
 cmdLoadAppData      = fwCommand(0x05, 3)
 rspLoadAppData      = fwCommand(0x06, 1)
 rspLoadAppDataReady = fwCommand(0x07, 3)
+cmdGetUDI           = fwCommand(0x08, 0)
+rspGetUDI           = fwCommand(0x09, 2)
 
 # Data lengths for use with command/response frames
 PROTO_DATA_LENGTH = [

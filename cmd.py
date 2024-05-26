@@ -48,6 +48,22 @@ def get_name_version(args):
         tk.disconnect()
 
 
+def get_udi(args):
+    """
+    Retrieve unique device identifier (UDI) of the given device
+
+    """
+    tk = TKey(args.device)
+
+    try:
+        tk.connect()
+        logger.info("Got UDI: %s" % tk.get_udi_string())
+    except TKeyError as e:
+        logger.error('Failed to get UDI: %s' % e)
+    finally:
+        tk.disconnect()
+
+
 def load_app(args):
     """
     Load an application onto the given device

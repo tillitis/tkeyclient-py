@@ -89,6 +89,58 @@ class TKey:
         return name0, name1, version
 
 
+    def get_udi(self) -> Tuple[int, int, int, int, int]:
+        """
+        Retrieve unique device identifier (UDI) of the device:
+
+        Reserved           4 bits
+        Vendor             1 byte
+        Product ID         6 bits
+        Product revision   6 bits
+        Serial number      2 bytes
+
+        Total              4 bytes (32 bits)
+
+        """
+        cmd      = proto.cmdGetUDI
+        endpoint = proto.ENDPOINT_FW
+        frame_id = 2
+
+        frame = proto.create_frame(cmd, frame_id, endpoint)
+
+        proto.write_frame(self.conn, frame)
+
+        response = proto.read_frame(self.conn)
+
+        if not proto.ensure_frames(frame, response):
+            raise error.TKeyProtocolError('Response mismatch')
+
+        data = response[3:]
+
+        # Get device vendor and product details
+        product = int.from_bytes(data[0:4], byteorder='little')
+
+        reserved = (product >> 28) & 15
+        vendor = (product >> 12) & 65535
+        pid = (product >> 6) & 63
+        revision = product & 63
+
+        # Get device serial number
+        serial = int.from_bytes(data[4:8], byteorder='little')
+
+        return reserved, vendor, pid, revision, serial
+
+
+    def get_udi_string(self) -> str:
+        """
+        Retrieve unique device identifier (UDI) as a hexadecimal string
+
+        """
+        reserved, vendor, pid, revision, serial = self.get_udi()
+        return "{0:01x}:{1:04x}:{2:x}:{3:x}:{4:08x}".format(
+            reserved, vendor, pid, revision, serial)
+
+
     def load_app(self, file, secret=None) -> None:
         """
         Load an application onto the device
