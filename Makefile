@@ -18,6 +18,14 @@ install:
 install_dev:
 	$(PIPENV_INSTALL) -d -e .
 
+# Install git hooks for the pre-commit framework
+install_hooks: install_dev
+	pre-commit install
+
+# Uninstall git hooks for the pre-commit framework
+uninstall_hooks:
+	pre-commit uninstall
+
 # Run linter against entire codebase
 lint:
 	ruff check .

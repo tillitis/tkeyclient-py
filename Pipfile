@@ -10,8 +10,9 @@ pyserial = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-xdist = "*"
-tkeyclient = {file = ".", editable = true}
 ruff = "*"
+pre-commit = "*"
+tkeyclient = {file = ".", editable = true}
 
 [requires]
 python_version = "3.12"
