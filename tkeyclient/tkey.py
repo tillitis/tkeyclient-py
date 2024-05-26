@@ -236,11 +236,11 @@ class TKey:
                 raise error.TKeyLoadError('Bad status when writing (1 = STATUS_BAD)')
 
             if response_id == proto.rspLoadAppDataReady.id:
-                digest = bytes(response[3:][:32])
+                digest = bytearray(response[3:][:32])
             elif not response_id == proto.rspLoadAppData.id:
                 raise error.TKeyProtocolError('Unexpected response code (%d)' % response_id)
 
-        return digest
+        return bytes(digest)
 
 
     def get_digest(self, file) -> bytes:
