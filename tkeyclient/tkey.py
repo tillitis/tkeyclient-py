@@ -13,7 +13,7 @@ import tkeyclient.proto as proto
 # Defaults for serial communication with the TKey
 DEFAULT_SPEED = 62500
 DEFAULT_TIMEOUT = 1
-
+APP_MAXSIZE = 100 * 1024
 
 class TKey:
 
@@ -104,6 +104,11 @@ class TKey:
             file_digest = self.get_digest(file)
         except FileNotFoundError as e:
             raise error.TKeyLoadError(e)
+
+        # Ensure file size is not bigger than max allowed
+        if file_size > APP_MAXSIZE:
+            raise error.TKeyLoadError('File too big (%d > %d)' % \
+                (file_size, APP_MAXSIZE))
 
         # Set size for application payload (4 bytes, little endian)
         size_bytes = int(file_size).to_bytes(4, byteorder='little')
