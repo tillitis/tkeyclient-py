@@ -18,6 +18,10 @@ install:
 install_dev:
 	$(PIPENV_INSTALL) -d -e .
 
+# Install packages required for building documentation
+install_docs:
+	$(PIPENV_INSTALL) --categories docs
+
 # Install git hooks for the pre-commit framework
 install_hooks: install_dev
 	pre-commit install
@@ -41,3 +45,7 @@ coverage_junit:
 # Run test suite and generate coverage report in HTML
 coverage_html:
 	$(PYTEST) --cov=$(PYTEST_LIBRARY) --cov-report=html:$(PYTEST_COVERAGE_HTML)
+
+# Build HTML documentation from source
+docs: install_docs
+	mkdocs build -d site

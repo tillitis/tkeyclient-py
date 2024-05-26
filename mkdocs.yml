@@ -1,0 +1,50 @@
+# mkdocs.yml
+site_name: tkeyclient-py
+
+theme:
+  name: "material"
+
+plugins:
+- mkdocstrings:
+    handlers:
+      python:
+        options:
+          #members_order: source
+          filters:
+            - '!^_'
+          show_root_heading: true
+          show_root_full_path: true
+          show_symbol_type_heading: true
+          heading_level: 2
+          merge_init_into_class: true
+          group_by_category: true
+          docstring_options:
+            ignore_init_summary: true
+- search
+
+extra_css:
+  - pygments.css
+
+markdown_extensions:
+  - toc:
+      permalink: "#"
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+
+nav:
+  - Home: index.md
+  - How-tos:
+    - guides/api.md
+    - guides/proto.md
+  - TKey API: reference/tkeyclient/tkey.md
+  - Modules:
+    - reference/tkeyclient/proto.md
+    - reference/tkeyclient/hw.md
+    - reference/tkeyclient/error.md

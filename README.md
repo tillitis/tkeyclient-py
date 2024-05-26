@@ -221,6 +221,22 @@ This package has been developed and tested using a TKey of the following version
 
 `Firmware name0:'tk1' name1:'mkdf' version:5`
 
+## Development
+
+Get an environment prepared for development and testing of the package sources:
+
+```
+$ make install_dev
+```
+
+## Documentation
+
+Get an environment prepared for building HTML documentation for the packages:
+
+```
+$ make install_docs
+```
+
 ## Licenses and SPDX tags
 
 Unless otherwise noted, the project sources are licensed under the

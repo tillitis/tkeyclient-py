@@ -17,3 +17,10 @@ gitlint = "*"
 
 [requires]
 python_version = "3.12"
+
+[docs]
+mkdocs = "*"
+mkdocstrings = {extras = ["python"], version = "*"}
+mkdocs-material = "*"
+markdown = "*"
+pygments = "*"
