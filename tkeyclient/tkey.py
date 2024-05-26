@@ -1,5 +1,15 @@
 # Copyright (C) 2022-2024 - Tillitis AB
 # SPDX-License-Identifier: GPL-2.0-only
+"""High-level module for interacting with the TKey device.
+
+This module exports a TKey class with methods that represent commands supported
+by the device.
+
+Typical usage example:
+
+  tkey = TKey('/dev/ttyACM0', connect=True)
+  name0, name1, version = tkey.get_name_version()
+"""
 
 from typing import Tuple
 
@@ -20,13 +30,32 @@ APP_MAXSIZE = 100 * 1024
 
 
 class TKey:
+    """TKey device class implementation.
+
+    Class instance represents a TKey device, with methods that corresponds to
+    the commands supported by the device.
+
+    By default, the instance will not be connected to the TKey device. Use the
+    connect() instance method or pass connect=True as an argument when creating
+    the instance.
+    """
+
     conn: serial.Serial
 
     def __init__(
-        self, device, speed=DEFAULT_SPEED, timeout=DEFAULT_TIMEOUT, connect=False
+        self,
+        device: str,
+        speed: int = DEFAULT_SPEED,
+        timeout: int = DEFAULT_TIMEOUT,
+        connect: bool = False,
     ):
-        """
-        Create new instance of a TKey object
+        """Create new instance of a TKey device.
+
+        Args:
+            device: Path to the TKey serial device
+            speed: Baud rate to use for serial communication
+            timeout: Timeout for reading from serial port
+            connect: If True automatically connect to device
 
         Raises:
             TKeyConfigError: If serial device parameters are invalid.
@@ -45,17 +74,11 @@ class TKey:
             self.connect()
 
     def __enter__(self):
-        """
-        Entry point for a TKey context manager
-
-        """
+        """Entry point for a TKey context manager."""
         return self
 
     def __exit__(self, type, value, traceback):
-        """
-        Exit point for a TKey context manager
-
-        """
+        """Exit point for a TKey context manager."""
         # Close serial port if opened
         if self.test():
             self.disconnect()
@@ -63,20 +86,20 @@ class TKey:
         return False
 
     def __repr__(self):
-        """
-        Return string with expession required to recreate object instance
+        """Get string representation of current instance.
 
+        Returns:
+            A string with the Python expression required for recreating current instance.
         """
         return "{0}('{1}', speed={2}, timeout={3})".format(
             type(self).__name__, self.conn.port, self.conn.baudrate, self.conn.timeout
         )
 
     def connect(self) -> None:
-        """
-        Open connection to the given serial device
+        """Open serial connection to device.
 
         Raises:
-            TKeyConnectionError: If serial device cannot be opened.
+            TKeyConnectionError: If connection cannot be opened.
         """
         try:
             self.conn.open()
@@ -84,23 +107,28 @@ class TKey:
             raise error.TKeyConnectionError(e) from e
 
     def disconnect(self) -> None:
-        """
-        Close connection to the serial device
-
-        """
+        """Close serial connection to device."""
         self.conn.close()
 
     def test(self) -> bool:
-        """
-        Test if serial connection is open
+        """Test if device is connected.
 
+        Returns:
+            True if serial connection to device is currently open.
         """
         return self.conn.is_open
 
     def get_name_version(self) -> Tuple[str, str, int]:
-        """
-        Retrieve name and version of the device
+        """Retrieve name and version of the device and firmware.
 
+        Returns:
+            A tuple with integers representing the following values:
+
+                name0, name1, version
+
+                name0:   Device model
+                name1:   Firmware name
+                version: Firmware version
         """
         response = proto.send_command(
             self.conn, proto.cmdNameVersion, proto.ENDPOINT_FW, 2
@@ -115,18 +143,29 @@ class TKey:
 
         return name0, name1, version
 
+    # Reserved           4 bits
+    # Vendor             1 byte
+    # Product ID         6 bits
+    # Product revision   6 bits
+    # Serial number      2 bytes
+    #
+    # Total              4 bytes (32 bits)
     def get_udi(self) -> Tuple[int, int, int, int, int]:
-        """
-        Retrieve unique device identifier (UDI) of the device:
+        """Retrieve unique device identifier (UDI) of the device.
 
-        Reserved           4 bits
-        Vendor             1 byte
-        Product ID         6 bits
-        Product revision   6 bits
-        Serial number      2 bytes
+        These values can be used to uniquely identify a specific TKey. They are
+        returned as integers but they make more sense in hexadecimal notation.
+        Use the `get_udi_string` method to get a hexadecimal string with these
+        details concatenated in a more useful format.
 
-        Total              4 bytes (32 bits)
+        Returns:
+            A tuple with integers representing the following values:
 
+                reserved    Currently unused
+                vendor      Vendor ID
+                pid         Product ID
+                revision    Product revision
+                serial      Serial number
         """
         response = proto.send_command(self.conn, proto.cmdGetUDI, proto.ENDPOINT_FW, 2)
 
@@ -146,9 +185,18 @@ class TKey:
         return reserved, vendor, pid, revision, serial
 
     def get_udi_string(self) -> str:
-        """
-        Retrieve unique device identifier (UDI) as a hexadecimal string
+        """Retrieve unique device identifier (UDI) as a hexadecimal string.
 
+        This will return the UDI in a more useful format if you need to get an
+        unique value representing the TKey device. It concatenates the values
+        from `get_udi` into a string with hexadecimal values, separated by
+        colon.
+
+        Returns:
+            A string with hexadecimal values of the UDI for the device.
+
+        Example:
+            0:1337:2:1:00000042
         """
         reserved, vendor, pid, revision, serial = self.get_udi()
         return '{0:01x}:{1:04x}:{2:x}:{3:x}:{4:08x}'.format(
@@ -156,9 +204,18 @@ class TKey:
         )
 
     def load_app(self, file, secret=None) -> None:
-        """
-        Load an application onto the device
+        """Load an application onto the device.
 
+        Args:
+            file: Path to a binary file to load.
+            secret: A user-supplied secret (USS) to send with the binary.
+
+        Raises:
+            TKeyLoadError:
+                - If the binary cannot be found/read.
+                - If the binary is too big (size > APP_MAXSIZE)
+                - If the device is not ready to load an application.
+                - If the BLAKE2s-256s digest of application received by device does not match the source binary.
         """
         # Calculate size and BLAKE2s digest from source file
         try:
@@ -208,9 +265,24 @@ class TKey:
             )
 
     def load_app_data(self, file_size: int, file: str) -> bytes:
-        """
-        Load application data onto the device and return BLAKE2s digest
+        """Load application data onto the device and return BLAKE2s-256 hash digest.
 
+        For internal use by the `load_app` method.
+
+        Used for splitting the source binary into 127-byte chunks and send them
+        over to the device.
+
+        Args:
+            file_size: Size of the source binary to load, in bytes.
+            file: Path of the source binary to load.
+
+        Returns:
+            Byte representation of a 32-byte BLAKE2s-256 hash digest for the
+                application actually received by the device.
+
+        Raises:
+            TKeyLoadError: If an error was encountered when loading application.
+            TKeyProtocolError: If unexpected data was received from device.
         """
         dataframes = []
 
@@ -242,9 +314,14 @@ class TKey:
         return bytes(digest)
 
     def get_digest(self, file) -> bytes:
-        """
-        Return BLAKE2s digest for given file as bytes
+        """Return BLAKE2s-256 digest for given file as bytes.
 
+        Args:
+            file: Path of a file for which to calculate the BLAKE2s-256 hash digest.
+
+        Returns:
+            Byte representation of a 32-byte BLAKE2s-256 hash digest for the
+                file passed as argument to this function.
         """
         with open(file, 'rb') as f:
             data = f.read()

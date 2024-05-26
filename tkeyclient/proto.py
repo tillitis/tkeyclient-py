@@ -1,5 +1,11 @@
 # Copyright (C) 2022-2024 - Tillitis AB
 # SPDX-License-Identifier: GPL-2.0-only
+"""Module for low-level interaction with the TKey protocol.
+
+This module includes methods for reading and writing to a TKey device,
+including helper methods to create and parse protocol headers and
+command/response data.
+"""
 
 import os
 
@@ -17,6 +23,7 @@ ENDPOINT_APP = 3
 
 # Named tuples for command and response frames
 fwCommand = namedtuple('fwCommand', ['id', 'length'])
+fwCommand.__doc__ = """Representation of a TKey command or response, with protocol ID and maximal data length."""
 
 cmdNameVersion = fwCommand(0x01, 0)
 rspNameVersion = fwCommand(0x02, 2)
@@ -75,9 +82,20 @@ PROTO_DATA_LENGTH = [
 def create_frame(
     cmd: fwCommand, frame_id: int, endpoint: int, data: bytes = bytes()
 ) -> bytearray:
-    """
-    Create protocol frame
+    """Create protocol data structure for a TKey command or response.
 
+    Args:
+        cmd: An instance of fwCommand representing the command/response.
+        frame_id: Frame ID tag to use in protocol header.
+        endpoint: Endpoint number to use in protocol header.
+        data: Data to append after protocol header (optional).
+
+    Returns:
+        A bytearray object with a valid protocol header and any data passed as
+            argument to the function.
+
+    Raises:
+        TKeyProtocolError: An invalid value was passed as argument to the function.
     """
     if cmd.id < 0 or cmd.id > 255:
         raise error.TKeyProtocolError('Command ID must not exceed one byte [0..255]')
@@ -107,9 +125,18 @@ def create_frame(
 
 
 def parse_header(header: int) -> Tuple[int, int, int, int]:
-    """
-    Parse framing protocol header
+    """Parse protocol header and return field values.
 
+    Args:
+        header: The header byte, as an integer
+
+    Returns:
+        A tuple with integers representing the following values:
+
+            frame_id    Frame ID tag (0-3)
+            endpoint    Endpoint number (0-3)
+            status      0 = OK, 1 = Not OK (NOK)
+            length      Response data length
     """
     frame_id = (header >> 5) & 3
     endpoint = (header >> 3) & 3
@@ -122,13 +149,21 @@ def parse_header(header: int) -> Tuple[int, int, int, int]:
 def send_command(
     conn: serial.Serial, cmd: fwCommand, eid: int, fid: int, data: bytes = bytes()
 ):
-    """
-    Send a command (with optional data) and return the response
+    """Send a command (with optional data) and return the response.
 
     This is a high-level function to that handles the framing, command and
     response protocol using the lower-level helper methods for creating,
     writing, reading and validating data.
 
+    Args:
+        conn: An instance of a serial.Serial object connected to the device.
+        cmd: An instance of fwCommand representing the command to send.
+        eid: Endpoint number to use in protocol header.
+        fid: Frame ID tag to use in protocol header.
+        data: Data to send with the command (optional).
+
+    Raises:
+        TKeyProtocolError: Response received did not match the command sent.
     """
     frame = create_frame(cmd, fid, eid, data)
 
@@ -143,9 +178,17 @@ def send_command(
 
 
 def write_frame(conn: serial.Serial, data: bytes) -> int:
-    """
-    Write data to serial device
+    """Write data to the device.
 
+    Args:
+        conn: An instance of a serial.Serial object connected to the device.
+        data: A byte object with data that should be written to the device.
+
+    Returns:
+        Number of bytes written to the device.
+
+    Raises:
+        TKeyWriteError: An error occured while writing data to device.
     """
     written = 0
 
@@ -169,9 +212,20 @@ def write_frame(conn: serial.Serial, data: bytes) -> int:
 
 
 def read_frame(conn: serial.Serial) -> bytes:
-    """
-    Read data from a serial device
+    """Read data from the device.
 
+    Args:
+        conn: An instance of a serial.Serial object connected to the device.
+
+    Returns:
+        A byte object of data that was read from the device.
+
+    Raises:
+        TKeyReadError:
+            - An error occured while reading data from the device.
+            - No response data was returned from device.
+        TKeyStatusError: Response status not OK (NOK).
+        TKeyProtocolError: Unexpected response data length.
     """
     # Attempt to read the response header
     data = bytes()
@@ -221,10 +275,17 @@ def read_frame(conn: serial.Serial) -> bytes:
 
 
 def ensure_frames(command: bytes, response: bytes) -> bool:
-    """
-    Ensure that a response matches a command, by checking the frame header and
-    command ID for both of them.
+    """Ensure that the given response matches the corresponding command.
 
+    This function will compare the header values of a command and response to
+    ensure that they match.
+
+    Args:
+        command: Data representing the command, as bytes
+        response: Data representing the response, as bytes
+
+    Returns:
+        True if the command and response headers match, otherwise False.
     """
     cmd_header = parse_header(command[0])
     res_header = parse_header(response[0])
@@ -252,9 +313,16 @@ def ensure_frames(command: bytes, response: bytes) -> bool:
 
 
 def byte_length(index: int) -> int:
-    """
-    Return the byte value corresponding to length bit from header
+    """Return the byte value corresponding to length bit from header.
 
+    Args:
+        index: Value of the length bit in header.
+
+    Returns:
+        The data size that corresponds to the given bit, in bytes.
+
+    Raises:
+        TKeyProtocolError: Length bit value does not conform to protocol.
     """
     if index + 1 > len(PROTO_DATA_LENGTH):
         raise error.TKeyProtocolError('Invalid command length value')
@@ -263,9 +331,12 @@ def byte_length(index: int) -> int:
 
 
 def debug_print(frame: bytes, header: str = '', marks: dict | None = None) -> None:
-    """
-    Print debug_frame output if debug is enabled, with optional header
+    """Print data if debug mode is enabled, with optional header and markers.
 
+    Args:
+        frame: The data to print.
+        header: An optional header to show as preface to output.
+        marks: An optional dictionary with markers for specific bytes.
     """
     if debug_enabled():
         if header:
@@ -276,9 +347,11 @@ def debug_print(frame: bytes, header: str = '', marks: dict | None = None) -> No
 
 
 def debug_frame(frame: bytes, marks: dict | None = None) -> None:
-    """
-    Print the bytes of a given frame (in binary and hex)
+    """Print the bytes of a given frame (in binary and hex).
 
+    Args:
+        frame: The data to print.
+        marks: An optional dictionary with markers for specific bytes.
     """
     for i, d in enumerate(frame):
         # Bytes are 1-indexed for human output, but 0-indexed for everything
@@ -295,8 +368,5 @@ def debug_frame(frame: bytes, marks: dict | None = None) -> None:
 
 
 def debug_enabled() -> bool:
-    """
-    Return True if TKEY_DEBUG environment variable is set to 1
-
-    """
+    """Return True if TKEY_DEBUG environment variable is set to 1."""
     return os.getenv('TKEY_DEBUG', None) == '1'
