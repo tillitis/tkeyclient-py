@@ -18,11 +18,13 @@ DEFAULT_SPEED = 62500
 DEFAULT_TIMEOUT = 1
 APP_MAXSIZE = 100 * 1024
 
-class TKey:
 
+class TKey:
     conn: serial.Serial
 
-    def __init__(self, device, speed=DEFAULT_SPEED, timeout=DEFAULT_TIMEOUT, connect=False):
+    def __init__(
+        self, device, speed=DEFAULT_SPEED, timeout=DEFAULT_TIMEOUT, connect=False
+    ):
         """
         Create new instance of a TKey object
 
@@ -36,12 +38,11 @@ class TKey:
             self.conn.baudrate = speed
             self.conn.timeout = timeout
         except ValueError as e:
-            raise error.TKeyConfigError(e)
+            raise error.TKeyConfigError(e) from e
 
         # Open serial port if requested
         if connect:
             self.connect()
-
 
     def __enter__(self):
         """
@@ -49,7 +50,6 @@ class TKey:
 
         """
         return self
-
 
     def __exit__(self, type, value, traceback):
         """
@@ -62,15 +62,14 @@ class TKey:
 
         return False
 
-
     def __repr__(self):
         """
         Return string with expession required to recreate object instance
 
         """
         return "{0}('{1}', speed={2}, timeout={3})".format(
-            type(self).__name__, self.conn.port, self.conn.baudrate, self.conn.timeout)
-
+            type(self).__name__, self.conn.port, self.conn.baudrate, self.conn.timeout
+        )
 
     def connect(self) -> None:
         """
@@ -82,8 +81,7 @@ class TKey:
         try:
             self.conn.open()
         except serial.SerialException as e:
-            raise error.TKeyConnectionError(e)
-
+            raise error.TKeyConnectionError(e) from e
 
     def disconnect(self) -> None:
         """
@@ -92,7 +90,6 @@ class TKey:
         """
         self.conn.close()
 
-
     def test(self) -> bool:
         """
         Test if serial connection is open
@@ -100,14 +97,14 @@ class TKey:
         """
         return self.conn.is_open
 
-
     def get_name_version(self) -> Tuple[str, str, int]:
         """
         Retrieve name and version of the device
 
         """
         response = proto.send_command(
-            self.conn, proto.cmdNameVersion, proto.ENDPOINT_FW, 2)
+            self.conn, proto.cmdNameVersion, proto.ENDPOINT_FW, 2
+        )
 
         data = response[2:]
 
@@ -117,7 +114,6 @@ class TKey:
         version = int.from_bytes(data[8:][:4], byteorder='little')
 
         return name0, name1, version
-
 
     def get_udi(self) -> Tuple[int, int, int, int, int]:
         """
@@ -132,8 +128,7 @@ class TKey:
         Total              4 bytes (32 bits)
 
         """
-        response = proto.send_command(
-            self.conn, proto.cmdGetUDI, proto.ENDPOINT_FW, 2)
+        response = proto.send_command(self.conn, proto.cmdGetUDI, proto.ENDPOINT_FW, 2)
 
         data = response[3:]
 
@@ -150,16 +145,15 @@ class TKey:
 
         return reserved, vendor, pid, revision, serial
 
-
     def get_udi_string(self) -> str:
         """
         Retrieve unique device identifier (UDI) as a hexadecimal string
 
         """
         reserved, vendor, pid, revision, serial = self.get_udi()
-        return "{0:01x}:{1:04x}:{2:x}:{3:x}:{4:08x}".format(
-            reserved, vendor, pid, revision, serial)
-
+        return '{0:01x}:{1:04x}:{2:x}:{3:x}:{4:08x}'.format(
+            reserved, vendor, pid, revision, serial
+        )
 
     def load_app(self, file, secret=None) -> None:
         """
@@ -171,12 +165,13 @@ class TKey:
             file_size = os.path.getsize(file)
             file_digest = self.get_digest(file)
         except FileNotFoundError as e:
-            raise error.TKeyLoadError(e)
+            raise error.TKeyLoadError(e) from e
 
         # Ensure file size is not bigger than max allowed
         if file_size > APP_MAXSIZE:
-            raise error.TKeyLoadError('File too big (%d > %d)' % \
-                (file_size, APP_MAXSIZE))
+            raise error.TKeyLoadError(
+                'File too big (%d > %d)' % (file_size, APP_MAXSIZE)
+            )
 
         # Initialize command data
         data = bytearray(127)
@@ -192,10 +187,11 @@ class TKey:
         data[4] = 0
         if secret is not None:
             data[4] = 1
-            data[5:5+len(secret)] = bytes(secret, encoding='utf8')
+            data[5 : 5 + len(secret)] = bytes(secret, encoding='utf8')
 
         response = proto.send_command(
-            self.conn, proto.cmdLoadApp, proto.ENDPOINT_FW, 2, data)
+            self.conn, proto.cmdLoadApp, proto.ENDPOINT_FW, 2, data
+        )
 
         load_status = response[2]
         if load_status == 1:
@@ -206,9 +202,10 @@ class TKey:
 
         # Compare application hashes
         if not file_digest == result_digest:
-            raise error.TKeyLoadError('Hash digests do not match (%s != %s)' % \
-                                      (file_digest.hex(), result_digest.hex()))
-
+            raise error.TKeyLoadError(
+                'Hash digests do not match (%s != %s)'
+                % (file_digest.hex(), result_digest.hex())
+            )
 
     def load_app_data(self, file_size: int, file: str) -> bytes:
         """
@@ -227,9 +224,9 @@ class TKey:
         digest = bytearray(32)
 
         for df in dataframes:
-
             response = proto.send_command(
-                self.conn, proto.cmdLoadAppData, proto.ENDPOINT_FW, 2, df)
+                self.conn, proto.cmdLoadAppData, proto.ENDPOINT_FW, 2, df
+            )
 
             response_id, status = response[1:3]
             if status == 1:
@@ -237,11 +234,12 @@ class TKey:
 
             if response_id == proto.rspLoadAppDataReady.id:
                 digest = bytearray(response[3:][:32])
-            elif not response_id == proto.rspLoadAppData.id:
-                raise error.TKeyProtocolError('Unexpected response code (%d)' % response_id)
+            elif response_id != proto.rspLoadAppData.id:
+                raise error.TKeyProtocolError(
+                    'Unexpected response code (%d)' % response_id
+                )
 
         return bytes(digest)
-
 
     def get_digest(self, file) -> bytes:
         """

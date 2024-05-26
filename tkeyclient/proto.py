@@ -18,22 +18,22 @@ ENDPOINT_APP = 3
 # Named tuples for command and response frames
 fwCommand = namedtuple('fwCommand', ['id', 'length'])
 
-cmdNameVersion      = fwCommand(0x01, 0)
-rspNameVersion      = fwCommand(0x02, 2)
-cmdLoadApp          = fwCommand(0x03, 3)
-rspLoadApp          = fwCommand(0x04, 1)
-cmdLoadAppData      = fwCommand(0x05, 3)
-rspLoadAppData      = fwCommand(0x06, 1)
+cmdNameVersion = fwCommand(0x01, 0)
+rspNameVersion = fwCommand(0x02, 2)
+cmdLoadApp = fwCommand(0x03, 3)
+rspLoadApp = fwCommand(0x04, 1)
+cmdLoadAppData = fwCommand(0x05, 3)
+rspLoadAppData = fwCommand(0x06, 1)
 rspLoadAppDataReady = fwCommand(0x07, 3)
-cmdGetUDI           = fwCommand(0x08, 0)
-rspGetUDI           = fwCommand(0x09, 2)
+cmdGetUDI = fwCommand(0x08, 0)
+rspGetUDI = fwCommand(0x09, 2)
 
 # Data lengths for use with command/response frames
 PROTO_DATA_LENGTH = [
-    1,   # 0
-    4,   # 1
+    1,  # 0
+    4,  # 1
     32,  # 2
-    128  # 3
+    128,  # 3
 ]
 
 
@@ -72,7 +72,9 @@ PROTO_DATA_LENGTH = [
 # 128+1 bytes in length.
 
 
-def create_frame(cmd: fwCommand, frame_id: int, endpoint: int, data: bytes = bytes()) -> bytearray:
+def create_frame(
+    cmd: fwCommand, frame_id: int, endpoint: int, data: bytes = bytes()
+) -> bytearray:
     """
     Create protocol frame
 
@@ -99,7 +101,7 @@ def create_frame(cmd: fwCommand, frame_id: int, endpoint: int, data: bytes = byt
 
     # Insert command data if provided
     if data:
-        frame[2:2 + len(data)] = data
+        frame[2 : 2 + len(data)] = data
 
     return frame
 
@@ -111,13 +113,15 @@ def parse_header(header: int) -> Tuple[int, int, int, int]:
     """
     frame_id = (header >> 5) & 3
     endpoint = (header >> 3) & 3
-    status   = (header >> 2) & 3
-    length   = (header & 3)
+    status = (header >> 2) & 3
+    length = header & 3
 
     return frame_id, endpoint, status, length
 
 
-def send_command(conn: serial.Serial, cmd: fwCommand, eid: int, fid: int, data: bytes = bytes()):
+def send_command(
+    conn: serial.Serial, cmd: fwCommand, eid: int, fid: int, data: bytes = bytes()
+):
     """
     Send a command (with optional data) and return the response
 
@@ -145,22 +149,21 @@ def write_frame(conn: serial.Serial, data: bytes) -> int:
     """
     written = 0
 
-    debug_marks = { 0: 'Header' }
+    debug_marks = {0: 'Header'}
 
     if len(data) > 1:
         debug_marks[1] = 'Command'
     if len(data) > 2:
         debug_marks[2] = 'Data start'
 
-    debug_print(data, header='write_frame(): Sending data:',
-                marks=debug_marks)
+    debug_print(data, header='write_frame(): Sending data:', marks=debug_marks)
 
     try:
         written = conn.write(data)
         if written is None:
             written = 0
     except serial.SerialException as e:
-        raise error.TKeyWriteError(e)
+        raise error.TKeyWriteError(e) from e
 
     return written
 
@@ -176,12 +179,12 @@ def read_frame(conn: serial.Serial) -> bytes:
     try:
         data = conn.read(1)
     except serial.SerialException as e:
-        raise error.TKeyReadError(e)
+        raise error.TKeyReadError(e) from e
 
     if len(data) < 1:
         raise error.TKeyReadError('No response data')
 
-    debug_marks = { 0: 'Header' }
+    debug_marks = {0: 'Header'}
 
     header = data[0]
     frame_id, endpoint, status, cmd_len = parse_header(header)
@@ -190,8 +193,7 @@ def read_frame(conn: serial.Serial) -> bytes:
     # If status was NOK, throw away remaining data and raise exception
     if status == 1:
         conn.read(length)
-        debug_print(data, header='read_frame(): Received data:',
-                    marks=debug_marks)
+        debug_print(data, header='read_frame(): Received data:', marks=debug_marks)
         raise error.TKeyStatusError('Response status code not OK (1)')
 
     # Read all the remaining data
@@ -202,8 +204,9 @@ def read_frame(conn: serial.Serial) -> bytes:
     if len(data) > 2:
         debug_marks[2] = 'Data start'
 
-    debug_print(bytes([header]) + data, header='read_frame(): Received data:',
-                marks=debug_marks)
+    debug_print(
+        bytes([header]) + data, header='read_frame(): Received data:', marks=debug_marks
+    )
 
     # Ensure data matches length from header
     if not len(data) == length:
@@ -227,7 +230,7 @@ def ensure_frames(command: bytes, response: bytes) -> bool:
     res_header = parse_header(response[0])
 
     # Compare frame ID and endpoint
-    if not cmd_header[0:2] == res_header[0:2]:
+    if cmd_header[0:2] != res_header[0:2]:
         return False
 
     # Get command and response ID
@@ -235,18 +238,15 @@ def ensure_frames(command: bytes, response: bytes) -> bool:
     rid = response[1]
 
     # Compare ID in command and response
-    if cid == cmdNameVersion.id:
-        if not rid == rspNameVersion.id:
-            return False
-    elif cid == cmdLoadApp.id:
-        if not rid == rspLoadApp.id:
-            return False
+    if cid == cmdNameVersion.id and rid != rspNameVersion.id:  # noqa: SIM114
+        return False
+    elif cid == cmdLoadApp.id and rid != rspLoadApp.id:
+        return False
     elif cid == cmdLoadAppData.id:
         if rid not in [rspLoadAppData.id, rspLoadAppDataReady.id]:
             return False
-    elif cid == cmdGetUDI.id:
-        if not rid == rspGetUDI.id:
-            return False
+    elif cid == cmdGetUDI.id and rid != rspGetUDI.id:
+        return False
 
     return True
 
@@ -262,7 +262,7 @@ def byte_length(index: int) -> int:
     return PROTO_DATA_LENGTH[index]
 
 
-def debug_print(frame: bytes, header: str = str(), marks: dict = {}) -> None:
+def debug_print(frame: bytes, header: str = '', marks: dict | None = None) -> None:
     """
     Print debug_frame output if debug is enabled, with optional header
 
@@ -275,7 +275,7 @@ def debug_print(frame: bytes, header: str = str(), marks: dict = {}) -> None:
         print('')
 
 
-def debug_frame(frame: bytes, marks: dict = {}) -> None:
+def debug_frame(frame: bytes, marks: dict | None = None) -> None:
     """
     Print the bytes of a given frame (in binary and hex)
 
@@ -284,12 +284,14 @@ def debug_frame(frame: bytes, marks: dict = {}) -> None:
         # Bytes are 1-indexed for human output, but 0-indexed for everything
         # else (including marks).
         num = i + 1
-        if i in marks.keys():
-            print('Byte {0:0>3}:  {1:0>8b}  0x{1:0>2x}  <- {2}'.format(
-                num, d, marks.get(i)))
+        if marks and i in marks:
+            print(
+                'Byte {0:0>3}:  {1:0>8b}  0x{1:0>2x}  <- {2}'.format(
+                    num, d, marks.get(i)
+                )
+            )
         else:
-            print('Byte {0:0>3}:  {1:0>8b}  0x{1:0>2x}'.format(
-                num, d))
+            print('Byte {0:0>3}:  {1:0>8b}  0x{1:0>2x}'.format(num, d))
 
 
 def debug_enabled() -> bool:
@@ -297,4 +299,4 @@ def debug_enabled() -> bool:
     Return True if TKEY_DEBUG environment variable is set to 1
 
     """
-    return True if os.getenv('TKEY_DEBUG', None) == "1" else False
+    return os.getenv('TKEY_DEBUG', None) == '1'

@@ -42,9 +42,7 @@ def test_find_device_success(monkeypatch):
     Assert finding a device
 
     """
-    list_one = Mock(return_value=[
-        ListPortInfo(device='/dev/ttyDummy0')
-    ])
+    list_one = Mock(return_value=[ListPortInfo(device='/dev/ttyDummy0')])
 
     monkeypatch.setattr(hw, 'list_devices', list_one)
 
@@ -56,11 +54,13 @@ def test_filter_tkey_devices(monkeypatch):
     Assert finding multiple TKey devices
 
     """
-    multiple_devices = Mock(return_value=[
-        ListPortInfo(device='/dev/ttyDummy0'),
-        create_tkey('/dev/ttyTkey2'),
-        create_tkey('/dev/ttyTkey10'),
-    ])
+    multiple_devices = Mock(
+        return_value=[
+            ListPortInfo(device='/dev/ttyDummy0'),
+            create_tkey('/dev/ttyTkey2'),
+            create_tkey('/dev/ttyTkey10'),
+        ]
+    )
 
     monkeypatch.setattr(list_ports, 'comports', multiple_devices)
 
@@ -72,10 +72,12 @@ def test_sort_tkey_devices(monkeypatch):
     Assert sorting devices by natural sorting of numbers
 
     """
-    multiple_devices = Mock(return_value=[
-        create_tkey('/dev/ttyTkey10'),
-        create_tkey('/dev/ttyTkey2'),
-    ])
+    multiple_devices = Mock(
+        return_value=[
+            create_tkey('/dev/ttyTkey10'),
+            create_tkey('/dev/ttyTkey2'),
+        ]
+    )
 
     monkeypatch.setattr(list_ports, 'comports', multiple_devices)
 

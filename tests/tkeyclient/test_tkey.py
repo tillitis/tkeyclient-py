@@ -14,7 +14,7 @@ import tkeyclient.proto as proto
 from tkeyclient.tkey import TKey
 
 
-def create_mock_serial(handlers={}, **kwargs):
+def create_mock_serial(handlers=None, **kwargs):
     """
     Create and return a Mock instance of serial.Serial
 
@@ -59,8 +59,7 @@ def test_connect_serial_exception(monkeypatch):
     Assert that TKeyConnectionError is raised on serial error during connect
 
     """
-    mock_serial = create_mock_serial(
-        {'open.side_effect': serial.SerialException})
+    mock_serial = create_mock_serial({'open.side_effect': serial.SerialException})
 
     tkey = TKey('/dev/ttyDummy0')
 
@@ -111,7 +110,6 @@ def test_context_opened():
 
     """
     with TKey('/dev/ttyDummy0', speed=1, timeout=2) as tkey:
-
         assert isinstance(tkey, TKey)
 
         assert tkey.conn.port == '/dev/ttyDummy0'
@@ -191,7 +189,7 @@ def test_get_name_version_success(monkeypatch):
     """
     data = bytearray()
 
-    data.extend(map(ord, "abcdefgh"))
+    data.extend(map(ord, 'abcdefgh'))
     data.extend(int.to_bytes(1337, length=4, byteorder='little'))
 
     response = proto.create_frame(proto.rspNameVersion, 1, 2, data=data)
@@ -281,6 +279,7 @@ def test_load_app_file_not_found_exception(monkeypatch):
     Assert that TKey.load_app() raises TKeyLoadError for non-existing files
 
     """
+
     def file_not_found():
         raise FileNotFoundError()
 
@@ -338,7 +337,7 @@ def test_load_app_with_user_secret(mock_fopen, mock_getsize, monkeypatch):
 
     data = send_command.call_args.args[4]
 
-    secret_data = data[5:][:len(secret)]
+    secret_data = data[5:][: len(secret)]
 
     assert len(data) == 127
     assert secret == bytes(secret_data).decode('utf-8')
@@ -432,7 +431,7 @@ def test_load_app_data_done_success(mock_fopen, monkeypatch):
 
     response = proto.create_frame(proto.rspLoadAppDataReady, 1, 2)
 
-    response[3:3 + 32] = expected
+    response[3 : 3 + 32] = expected
 
     send_command = Mock(return_value=response)
 

@@ -17,13 +17,14 @@ def create_handler(func):
     Create wrapper for a client subcommand handler
 
     """
+
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except TKeyError as e:
-            logger.error("[{0}] {1}: {2}".format(
-                func.__name__, type(e).__name__, e))
+            logger.error('[{0}] {1}: {2}'.format(func.__name__, type(e).__name__, e))
             return False
+
     return wrapper
 
 
@@ -46,8 +47,7 @@ def get_name_version(args):
     """
     with TKey(get_device(args), connect=True) as tk:
         name0, name1, version = tk.get_name_version()
-        logger.info('Firmware name0:%s name1:%s version:%d' % \
-            (name0, name1, version))
+        logger.info('Firmware name0:%s name1:%s version:%d' % (name0, name1, version))
 
 
 def get_udi(args):
@@ -56,7 +56,7 @@ def get_udi(args):
 
     """
     with TKey(get_device(args), connect=True) as tk:
-        logger.info("Got UDI: %s" % tk.get_udi_string())
+        logger.info('Got UDI: %s' % tk.get_udi_string())
 
 
 def load_app(args):

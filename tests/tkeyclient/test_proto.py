@@ -13,14 +13,14 @@ import tkeyclient.proto as proto
 
 command_map = [
     (proto.cmdNameVersion, proto.rspNameVersion),
-    (proto.cmdLoadApp,     proto.rspLoadApp),
+    (proto.cmdLoadApp, proto.rspLoadApp),
     (proto.cmdLoadAppData, proto.rspLoadAppData),
     (proto.cmdLoadAppData, proto.rspLoadAppDataReady),
-    (proto.cmdGetUDI,      proto.rspGetUDI),
+    (proto.cmdGetUDI, proto.rspGetUDI),
 ]
 
 
-def create_mock_serial(handlers={}, **kwargs):
+def create_mock_serial(handlers=None, **kwargs):
     """
     Create and return a Mock instance of serial.Serial
 
@@ -67,7 +67,7 @@ def test_create_frame_invalid_command_id():
     Assert that create_frame() validates command ID
 
     """
-    for command_id in [ 1337, -1 ]:
+    for command_id in [1337, -1]:
         with pytest.raises(error.TKeyProtocolError):
             testCommand = proto.fwCommand(command_id, 1)
             proto.create_frame(testCommand, 1, 2)
@@ -78,7 +78,7 @@ def test_create_frame_invalid_frame_id():
     Assert that create_frame() validates frame ID
 
     """
-    for endpoint in [ 1337, -1 ]:
+    for endpoint in [1337, -1]:
         with pytest.raises(error.TKeyProtocolError):
             proto.create_frame(proto.cmdNameVersion, endpoint, 2)
 
@@ -88,7 +88,7 @@ def test_create_frame_invalid_endpoint_id():
     Assert that create_frame() validates endpoint ID
 
     """
-    for frame_id in [ 1337, -1 ]:
+    for frame_id in [1337, -1]:
         with pytest.raises(error.TKeyProtocolError):
             proto.create_frame(proto.cmdNameVersion, 1, frame_id)
 
@@ -98,7 +98,7 @@ def test_create_frame_invalid_command_length():
     Assert that create_frame() validates command length bit
 
     """
-    for cmd_length in [ 1337, -1 ]:
+    for cmd_length in [1337, -1]:
         testCommand = proto.fwCommand(0x01, cmd_length)
         with pytest.raises(error.TKeyProtocolError):
             proto.create_frame(testCommand, 1, 2)
@@ -152,7 +152,6 @@ def test_ensure_frame_compare_valid_command_response():
 
     """
     for u in command_map:
-
         command, response = u
 
         cmd = proto.create_frame(command, 1, 2)
@@ -171,7 +170,6 @@ def test_ensure_frame_compare_wrong_response():
 
     """
     for u in command_map:
-
         command, _ = u
 
         cmd = proto.create_frame(command, 1, 2)
@@ -268,7 +266,7 @@ def test_write_frame_debug_default_marks(monkeypatch):
 
     kwargs = mock.debug_print.call_args.kwargs
 
-    assert 'marks' in kwargs.keys()
+    assert 'marks' in kwargs
 
     debug_marks = kwargs.get('marks')
 
@@ -330,7 +328,7 @@ def test_read_frame_expected_data_length():
     data = bytes([header, 0x07, 0x00]) + bytearray(126)
 
     mock_serial = create_mock_serial()
-    mock_serial.read.side_effect = [ bytes([header]), bytes(data[1:]) ]
+    mock_serial.read.side_effect = [bytes([header]), bytes(data[1:])]
 
     response = proto.read_frame(mock_serial)
 
@@ -346,13 +344,13 @@ def test_read_frame_invalid_data_length(monkeypatch):
     """
     parse_header = Mock(return_value=(0, 0, 0, 1))
 
-    monkeypatch.setattr(proto, "parse_header", parse_header)
+    monkeypatch.setattr(proto, 'parse_header', parse_header)
 
     header = 0x00 | 0  # set command data length to 1 byte
     data = bytes([header, 0x07])
 
     mock_serial = create_mock_serial()
-    mock_serial.read.side_effect = [ bytes([header]), bytes(data[1:]) ]
+    mock_serial.read.side_effect = [bytes([header]), bytes(data[1:])]
 
     with pytest.raises(error.TKeyProtocolError):
         proto.read_frame(mock_serial)
@@ -364,13 +362,13 @@ def test_read_frame_debug_default_marks(monkeypatch):
 
     """
     header = 0x00 | 1 << 5 | 2 << 3 | 0 << 2 | 1
-    data = [ 0x02, 0x13, 0x33, 0x37 ]
+    data = [0x02, 0x13, 0x33, 0x37]
 
     mock = Mock()
     monkeypatch.setattr(proto, 'debug_print', mock.debug_print)
 
     mock_serial = create_mock_serial()
-    mock_serial.read.side_effect = [ bytes([header]), bytes(data) ]
+    mock_serial.read.side_effect = [bytes([header]), bytes(data)]
 
     proto.read_frame(mock_serial)
 
@@ -379,7 +377,7 @@ def test_read_frame_debug_default_marks(monkeypatch):
 
     kwargs = mock.debug_print.call_args.kwargs
 
-    assert 'marks' in kwargs.keys()
+    assert 'marks' in kwargs
 
     debug_marks = kwargs.get('marks')
 
@@ -398,7 +396,7 @@ def test_send_command_unexpected_response():
     header = 0x00 | 1 << 3  # set endpoint ID
 
     mock_serial = create_mock_serial()
-    mock_serial.read.side_effect = [ bytes([header]), bytes([0x01]) ]
+    mock_serial.read.side_effect = [bytes([header]), bytes([0x01])]
 
     with pytest.raises(error.TKeyProtocolError):
         proto.send_command(mock_serial, proto.cmdNameVersion, 2, 0)
@@ -411,12 +409,10 @@ def test_send_command_expected_response():
     Assert unexpected response
 
     """
-    header = 0x00 | 1 << 5 | 2 << 3 | 0 << 2 # set frame ID, endpoint and status
+    header = 0x00 | 1 << 5 | 2 << 3 | 0 << 2  # set frame ID, endpoint and status
 
     mock_serial = create_mock_serial()
-    mock_serial.read.side_effect = [
-        bytes([header]), bytes([proto.rspNameVersion.id])
-    ]
+    mock_serial.read.side_effect = [bytes([header]), bytes([proto.rspNameVersion.id])]
 
     proto.send_command(mock_serial, proto.cmdNameVersion, 2, 1)
 
@@ -441,7 +437,7 @@ def test_debug_print(monkeypatch):
     kwargs = mock.debug_frame.call_args.kwargs
 
     assert args[0] == bytes([0x13, 0x33, 0x37])
-    assert kwargs == { 'marks': { 0: 'a' } }
+    assert kwargs == {'marks': {0: 'a'}}
 
 
 def test_debug_frame_without_mark(capsys):
