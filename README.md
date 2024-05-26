@@ -120,6 +120,41 @@ $ python3 ./client.py load /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/
 2024-05-05 22:16:09,055 - [INFO] cmd: Application loaded: /home/user/src/tillitis/tkey-testapps/apps/blink/app.bin
 ```
 
+## Debugging
+
+If the environment variable `TKEY_DEBUG` is set to `1`, data that is sent or
+received over the serial port will be printed out in binary and hexadecimal
+values:
+
+```
+$ TKEY_DEBUG=1 python3 ./client.py load /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/app.bin 
+write_frame(): Sending data:
+============================
+
+Byte 001:  01010011  0x53
+Byte 002:  00000011  0x03
+Byte 003:  00011110  0x1e
+[...]
+
+read_frame(): Received data:
+============================
+
+Byte 001:  01010001  0x51
+
+write_frame(): Sending data:
+============================
+
+Byte 001:  01010011  0x53
+Byte 002:  00000101  0x05
+Byte 003:  00110111  0x37
+[...]
+```
+
+**NOTE:** The `TKEY_DEBUG` environment variable is used by the protocol library
+in this package, not the example client included in the repository. This means
+that any application using the package and its protocol implementation can be
+debugged in this fashion.
+
 ## Disclaimer
 
 This package has been developed and tested using a TKey of the following version:
