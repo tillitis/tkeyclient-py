@@ -31,8 +31,7 @@ def list_devices() -> list[ListPortInfo]:
     Return a list of device paths to TKeys connected
 
     """
-    return sorted(filter(filter_device, list_ports.comports()),
-                  key=sort_device)
+    return sorted(filter(filter_device, list_ports.comports()))
 
 
 def filter_device(d: ListPortInfo) -> bool:
@@ -41,11 +40,3 @@ def filter_device(d: ListPortInfo) -> bool:
 
     """
     return d.vid == USB_VID and d.pid == USB_PID
-
-
-def sort_device(d: ListPortInfo) -> str:
-    """
-    Return key to use for natural sorting by device path
-
-    """
-    return d.device
