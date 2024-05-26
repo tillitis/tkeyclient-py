@@ -8,10 +8,38 @@ PYTEST_COVERAGE_JUNIT = junit.xml
 PYTEST_COVERAGE_HTML = htmlcov
 
 # Default targets
-all: install test
+all: lint test
+
+# Run linter against entire codebase
+lint:
+	ruff check .
+
+# Run test suite
+test:
+	$(PYTEST)
+
+# Build package for distribution
+build: install_dev
+	python -m build
+
+# Build HTML documentation from source
+docs: install_docs
+	mkdocs build -d site
+
+# Run test suite and show coverage report
+coverage:
+	$(PYTEST) --cov=$(PYTEST_LIBRARY)
+
+# Run test suite and generate coverage report in JUnit XML
+coverage_junit:
+	$(PYTEST) --cov=$(PYTEST_LIBRARY) --junit-xml=$(PYTEST_COVERAGE_JUNIT)
+
+# Run test suite and generate coverage report in HTML
+coverage_html:
+	$(PYTEST) --cov=$(PYTEST_LIBRARY) --cov-report=html:$(PYTEST_COVERAGE_HTML)
 
 # Install packages required by runtime
-install:
+install_deps:
 	$(PIPENV_INSTALL)
 
 # Install packages required for development and testing
@@ -29,23 +57,3 @@ install_hooks: install_dev
 # Uninstall git hooks for the pre-commit framework
 uninstall_hooks:
 	pre-commit uninstall
-
-# Run linter against entire codebase
-lint:
-	ruff check .
-
-# Run test suite
-test:
-	$(PYTEST)
-
-# Run test suite and generate coverage report in JUnit XML
-coverage_junit:
-	$(PYTEST) --cov=$(PYTEST_LIBRARY) --junit-xml=$(PYTEST_COVERAGE_JUNIT)
-
-# Run test suite and generate coverage report in HTML
-coverage_html:
-	$(PYTEST) --cov=$(PYTEST_LIBRARY) --cov-report=html:$(PYTEST_COVERAGE_HTML)
-
-# Build HTML documentation from source
-docs: install_docs
-	mkdocs build -d site

@@ -1,3 +1,46 @@
+[project]
+name = "tkeyclient"
+authors = [
+  { name = "Noor Christensen", email = "kchr@technopragmatics.org" },
+]
+description = "A package for interacting with the Tillitis TKey"
+readme = "README.md"
+keywords = ["tillitis", "tkey"]
+requires-python = ">=3.8"
+dependencies = [
+    "pyserial"
+]
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    'Operating System :: POSIX',
+    'Operating System :: Unix',
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    'Topic :: Software Development',
+]
+
+[project.urls]
+Homepage = "https://github.com/kchr/tkeyclient-py"
+Issues = "https://github.com/kchr/tkeyclient-py/issues"
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["tkeyclient"]
+
+[tool.setuptools_scm]
+# can be empty if no extra settings are needed, presence enables setuptools_scm
+
 # Configuration for pytest
 [tool.pytest.ini_options]
 addopts = [

@@ -12,8 +12,11 @@ pytest-cov = "*"
 pytest-xdist = "*"
 ruff = "*"
 pre-commit = "*"
-tkeyclient = {file = ".", editable = true}
 gitlint = "*"
+build = "*"
+setuptools = "*"
+setuptools_scm = "*"
+tkeyclient = {file = ".", editable = true}
 
 [docs]
 mkdocs = "*"
@@ -21,3 +24,6 @@ mkdocstrings = {extras = ["python"], version = "*"}
 mkdocs-material = "*"
 markdown = "*"
 pygments = "*"
+
+[requires]
+python_version = "3.12"
