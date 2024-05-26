@@ -68,8 +68,6 @@ class TKey:
 
         frame = proto.create_frame(cmd_id, frame_id, endpoint, length)
 
-        self.connect()
-
         try:
             proto.write_frame(self.conn, frame)
         except serial.SerialException as e:
@@ -120,8 +118,6 @@ class TKey:
         # @TODO: No USS provided, fix this
         frame[6] = 0
 
-        self.connect()
-
         try:
             proto.write_frame(self.conn, frame)
         except serial.SerialException as e:
@@ -138,8 +134,6 @@ class TKey:
 
         # Upload application data to device and get BLAKE2s digest
         result_digest = self.load_app_data(file_size, file)
-
-        self.disconnect()
 
         # Compare application hashes
         if not file_digest == result_digest:

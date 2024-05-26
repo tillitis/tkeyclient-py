@@ -3,8 +3,6 @@ import logging
 from tkeyclient.error import TKeyError
 from tkeyclient.tkey import TKey
 
-import tkeyclient.proto as proto
-
 
 logger = logging.getLogger('root')
 
@@ -21,10 +19,11 @@ def test_connection(args):
         tk.connect()
         if tk.test() is True:
             logger.info('Serial port is open!')
-        tk.disconnect()
     except TKeyError as e:
         logger.error('Connection failed: %s' % e)
         return False
+    finally:
+        tk.disconnect()
 
 
 def get_name_version(args):
@@ -35,11 +34,14 @@ def get_name_version(args):
     tk = TKey(args.device)
 
     try:
+        tk.connect()
         name0, name1, version = tk.get_name_version()
         logger.info('Firmware name0:%s name1:%s version:%d' % \
             (name0, name1, version))
     except TKeyError as e:
         logger.error('Failed to get device info: %s' % e)
+    finally:
+        tk.disconnect()
 
 
 def load_app(args):
@@ -50,7 +52,10 @@ def load_app(args):
     tk = TKey(args.device)
 
     try:
+        tk.connect()
         tk.load_app(args.file)
         logger.info('Application loaded: %s' % args.file)
     except TKeyError as e:
         logger.error('Failed to load application on device: %s' % e)
+    finally:
+        tk.disconnect()
