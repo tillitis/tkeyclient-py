@@ -1,5 +1,6 @@
 import serial
 
+from typing import Tuple
 from collections import namedtuple
 
 import tkeyclient.error as error
@@ -93,7 +94,7 @@ def create_frame(cmd: fwCommand, frame_id: int, endpoint: int) -> bytearray:
     return frame
 
 
-def parse_header(header: int):
+def parse_header(header: int) -> Tuple[int, int, int, int]:
     """
     Parse framing protocol header
 

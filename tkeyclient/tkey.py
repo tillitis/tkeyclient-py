@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import io
 import os
 import serial
@@ -29,7 +31,7 @@ class TKey:
         self.conn.timeout = timeout
 
 
-    def connect(self):
+    def connect(self) -> None:
         """
         Open connection to the given serial device
 
@@ -40,7 +42,7 @@ class TKey:
             raise error.TKeyConnectionError(e)
 
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """
         Close connection to the serial device
 
@@ -48,7 +50,7 @@ class TKey:
         self.conn.close()
 
 
-    def test(self):
+    def test(self) -> bool:
         """
         Test if serial connection is open
 
@@ -56,7 +58,7 @@ class TKey:
         return self.conn.is_open
 
 
-    def get_name_version(self):
+    def get_name_version(self) -> Tuple[str, str, int]:
         """
         Retrieve name and version of the device
 
@@ -84,7 +86,7 @@ class TKey:
         return name0, name1, version
 
 
-    def load_app(self, file, secret=None):
+    def load_app(self, file, secret=None) -> None:
         """
         Load an application onto the device
 
