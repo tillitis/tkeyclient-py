@@ -48,6 +48,9 @@ tk = TKey('/dev/ttyACM0')
 # With baud rate set to 9600 bps and timeout set to 5 seconds
 tk = TKey('/dev/ttyACM0', speed=9600, timeout=5)
 
+# Open serial connection to device
+tk.connect()
+
 # Get device version details
 model, name, version = tk.get_name_version()
 
@@ -56,6 +59,9 @@ tk.load_app('blink.bin')
 
 # Load binary application onto device (with user-supplied secret)
 tk.load_app('blink.bin', secret='setecastronomy')
+
+# Close serial connection to device
+tk.disconnect()
 ```
 
 ## Methods
