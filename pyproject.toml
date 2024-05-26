@@ -13,6 +13,7 @@ select = [
     "B",    # flake8-bugbear
     "SIM",  # flake8-simplify
     #"I"     # isort
+    "D"     # pydocstyle
 ]
 
 # Rules to ignore
@@ -34,3 +35,15 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+# Per-file ignores for rules
+[tool.ruff.lint.per-file-ignores]
+
+# Only include pydocstyle rules for files in package directory
+"!tkeyclient/**.py" = ["D"]
+
+# Configuration for pydocstyle rules
+[tool.ruff.lint.pydocstyle]
+
+# Use Google-style docstrings
+convention = "google"
