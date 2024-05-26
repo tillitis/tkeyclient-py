@@ -107,7 +107,7 @@ def parse_header(header: int) -> Tuple[int, int, int, int]:
     return frame_id, endpoint, status, length
 
 
-def write_frame(conn: serial.Serial, data: bytes) -> int | None:
+def write_frame(conn: serial.Serial, data: bytes) -> int:
     """
     Write data to serial device
 
@@ -116,13 +116,15 @@ def write_frame(conn: serial.Serial, data: bytes) -> int | None:
 
     try:
         written = conn.write(data)
+        if written == None:
+            written = 0
     except serial.SerialException as e:
         raise error.TKeyWriteError(e)
 
     return written
 
 
-def read_frame(conn: serial.Serial) -> bytes | None:
+def read_frame(conn: serial.Serial) -> bytes:
     """
     Read data from a serial device
 
