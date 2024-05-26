@@ -183,7 +183,7 @@ class TKey:
         data[4] = 0
         if secret != None:
             data[4] = 1
-            data[5:7+len(secret)] = bytes(secret, encoding='utf8')
+            data[5:5+len(secret)] = bytes(secret, encoding='utf8')
 
         response = proto.send_command(
             self.conn, proto.cmdLoadApp, proto.ENDPOINT_FW, 2, data)
