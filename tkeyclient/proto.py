@@ -24,23 +24,25 @@ ENDPOINT_APP = 3
 fwCommand = namedtuple('fwCommand', ['id', 'length'])
 fwCommand.__doc__ = """Representation of a TKey command or response, with protocol ID and maximal data length."""
 
-cmdNameVersion = fwCommand(0x01, 0)
-rspNameVersion = fwCommand(0x02, 2)
-cmdLoadApp = fwCommand(0x03, 3)
-rspLoadApp = fwCommand(0x04, 1)
-cmdLoadAppData = fwCommand(0x05, 3)
-rspLoadAppData = fwCommand(0x06, 1)
+# fmt: off
+cmdNameVersion      = fwCommand(0x01, 0)
+rspNameVersion      = fwCommand(0x02, 2)
+cmdLoadApp          = fwCommand(0x03, 3)
+rspLoadApp          = fwCommand(0x04, 1)
+cmdLoadAppData      = fwCommand(0x05, 3)
+rspLoadAppData      = fwCommand(0x06, 1)
 rspLoadAppDataReady = fwCommand(0x07, 3)
-cmdGetUDI = fwCommand(0x08, 0)
-rspGetUDI = fwCommand(0x09, 2)
+cmdGetUDI           = fwCommand(0x08, 0)
+rspGetUDI           = fwCommand(0x09, 2)
 
 # Data lengths for use with command/response frames
 PROTO_DATA_LENGTH = [
-    1,  # 0
-    4,  # 1
-    32,  # 2
+    1,    # 0
+    4,    # 1
+    32,   # 2
     128,  # 3
 ]
+# fmt: on
 
 
 # TKey Framing protocol
