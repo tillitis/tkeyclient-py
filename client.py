@@ -21,9 +21,13 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(metavar='[command]')
 
     parser_dev = argparse.ArgumentParser(add_help=False)
-    parser_dev.add_argument('device', type=str)
     parser_dev.add_argument('-s', '--speed', type=int, dest='speed', help='Baud rate')
     parser_dev.add_argument('-t', '--timeout', type=int, dest='timeout', help='Timeout (in seconds)')
+
+    # Mutually exclusive device args (auto or manual)
+    group_dev = parser_dev.add_mutually_exclusive_group(required=True)
+    group_dev.add_argument('-a', '--auto', dest='auto', action='store_true', help='Scan for device')
+    group_dev.add_argument('-d', '--device', dest='device', type=str, help='Path to device')
 
     cmd_test = subparsers.add_parser('test', help='Check if given serial port can be opened', parents=[parser_dev])
     cmd_test.set_defaults(func=cmd.test_connection)

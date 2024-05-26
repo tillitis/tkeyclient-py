@@ -133,6 +133,17 @@ options:
 Copyright (c) 2024 Tillitis AB - https://tillitis.se
 ```
 
+Some commands require an option for the target device. The device can either be
+specified manually or found automatically.
+
+Manually:
+
+`$ python3 ./client.py test -d /dev/ttyACM0`
+
+Automatically:
+
+`$ python3 ./client.py test -a`
+
 ### Get device model and version
 
 ```
