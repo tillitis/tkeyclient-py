@@ -26,6 +26,7 @@ if __name__ == '__main__':
     cmd_test.set_defaults(func=cmd.test_connection)
 
     cmd_load = subparsers.add_parser('load', help='Load application onto device', parents=[parser_dev])
+    cmd_load.add_argument('-u', '--uss', action='store_true', dest='secret', help='Provide a user-supplied secret (USS)')
     cmd_load.add_argument('file', type=str)
     cmd_load.set_defaults(func=cmd.load_app)
 

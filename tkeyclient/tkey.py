@@ -82,7 +82,7 @@ class TKey:
         return name0, name1, version
 
 
-    def load_app(self, file):
+    def load_app(self, file, secret=None):
         """
         Load an application onto the device
 
@@ -109,8 +109,11 @@ class TKey:
         frame[4] = size_bytes[2]
         frame[5] = size_bytes[3]
 
-        # @TODO: No USS provided, fix this
+        # Handle user-supplied secret if provided
         frame[6] = 0
+        if secret != None:
+            frame[6] = 1
+            frame[7:7+len(secret)] = bytes(secret, encoding='utf8')
 
         proto.write_frame(self.conn, frame)
 

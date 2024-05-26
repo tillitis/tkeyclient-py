@@ -1,3 +1,4 @@
+import getpass
 import logging
 
 from tkeyclient.error import TKeyError
@@ -51,9 +52,15 @@ def load_app(args):
     """
     tk = TKey(args.device)
 
+    # Prompt for user-supplied secret if requested
+    secret = None
+    if args.secret == True:
+        logger.debug('Asking for user-supplied secret (USS)')
+        secret = getpass.getpass(prompt='Enter secret: ')
+
     try:
         tk.connect()
-        tk.load_app(args.file)
+        tk.load_app(args.file, secret)
         logger.info('Application loaded: %s' % args.file)
     except TKeyError as e:
         logger.error('Failed to load application on device: %s' % e)
