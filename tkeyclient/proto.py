@@ -1,3 +1,6 @@
+# Copyright (C) 2022-2024 - Tillitis AB
+# SPDX-License-Identifier: GPL-2.0-only
+
 import serial
 
 from typing import Tuple
