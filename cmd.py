@@ -12,6 +12,21 @@ from tkeyclient.tkey import TKey
 logger = logging.getLogger('root')
 
 
+def create_handler(func):
+    """
+    Create wrapper for a client subcommand handler
+
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except TKeyError as e:
+            logger.error("[{0}] {1}: {2}".format(
+                func.__name__, type(e).__name__, e))
+            return False
+    return wrapper
+
+
 def test_connection(args):
     """
     Check if serial connection can be opened to the given device
@@ -20,12 +35,8 @@ def test_connection(args):
     port = get_device(args)
     logger.info('Attempting to open serial port: %s' % port)
     with TKey(port, connect=True) as tk:
-        try:
-            if tk.test() is True:
-                logger.info('Serial port is open!')
-        except TKeyError as e:
-            logger.error('Connection failed: %s' % e)
-            return False
+        if tk.test() is True:
+            logger.info('Serial port is open!')
 
 
 def get_name_version(args):
@@ -34,12 +45,9 @@ def get_name_version(args):
 
     """
     with TKey(get_device(args), connect=True) as tk:
-        try:
-            name0, name1, version = tk.get_name_version()
-            logger.info('Firmware name0:%s name1:%s version:%d' % \
-                (name0, name1, version))
-        except TKeyError as e:
-            logger.error('Failed to get device info: %s' % e)
+        name0, name1, version = tk.get_name_version()
+        logger.info('Firmware name0:%s name1:%s version:%d' % \
+            (name0, name1, version))
 
 
 def get_udi(args):
@@ -48,10 +56,7 @@ def get_udi(args):
 
     """
     with TKey(get_device(args), connect=True) as tk:
-        try:
-            logger.info("Got UDI: %s" % tk.get_udi_string())
-        except TKeyError as e:
-            logger.error('Failed to get UDI: %s' % e)
+        logger.info("Got UDI: %s" % tk.get_udi_string())
 
 
 def load_app(args):
@@ -66,11 +71,8 @@ def load_app(args):
         secret = getpass.getpass(prompt='Enter secret: ')
 
     with TKey(get_device(args), connect=True) as tk:
-        try:
-            tk.load_app(args.file, secret)
-            logger.info('Application loaded: %s' % args.file)
-        except TKeyError as e:
-            logger.error('Failed to load application on device: %s' % e)
+        tk.load_app(args.file, secret)
+        logger.info('Application loaded: %s' % args.file)
 
 
 def get_device(args):
