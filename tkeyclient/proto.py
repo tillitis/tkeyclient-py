@@ -72,7 +72,7 @@ PROTO_DATA_LENGTH = [
 # 128+1 bytes in length.
 
 
-def create_frame(cmd: fwCommand, frame_id: int, endpoint: int) -> bytearray:
+def create_frame(cmd: fwCommand, frame_id: int, endpoint: int, data: bytes = bytes()) -> bytearray:
     """
     Create protocol frame
 
@@ -85,6 +85,8 @@ def create_frame(cmd: fwCommand, frame_id: int, endpoint: int) -> bytearray:
         raise error.TKeyProtocolError('Frame ID must not exceed two bits [0..3]')
     if cmd.length > 3:
         raise error.TKeyProtocolError('Length value must not exceed two bits [0..3]')
+    if data and len(data) > PROTO_DATA_LENGTH[cmd.length]:
+        raise error.TKeyProtocolError('Data exceeds command data length in header')
 
     # Put frame id, endpoint and length in frame header byte
     header = (frame_id << 5) | (endpoint << 3) | cmd.length
@@ -97,6 +99,10 @@ def create_frame(cmd: fwCommand, frame_id: int, endpoint: int) -> bytearray:
 
     frame[0] = header  # Set header byte
     frame[1] = cmd.id  # Set command byte
+
+    # Insert command data if provided
+    if data:
+        frame[2:2 + len(data)] = data
 
     return frame
 
@@ -112,6 +118,27 @@ def parse_header(header: int) -> Tuple[int, int, int, int]:
     length   = PROTO_DATA_LENGTH[(header & 3)]
 
     return frame_id, endpoint, status, length
+
+
+def send_command(conn: serial.Serial, cmd: fwCommand, eid: int, fid: int, data: bytes = bytes()):
+    """
+    Send a command (with optional data) and return the response
+
+    This is a high-level function to that handles the framing, command and
+    response protocol using the lower-level helper methods for creating,
+    writing, reading and validating data.
+
+    """
+    frame = create_frame(cmd, fid, eid, data)
+
+    write_frame(conn, frame)
+
+    response = read_frame(conn)
+
+    if not ensure_frames(frame, response):
+        raise error.TKeyProtocolError('Response mismatch')
+
+    return response
 
 
 def write_frame(conn: serial.Serial, data: bytes) -> int:

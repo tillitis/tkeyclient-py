@@ -66,18 +66,8 @@ class TKey:
         Retrieve name and version of the device
 
         """
-        cmd      = proto.cmdNameVersion
-        endpoint = proto.ENDPOINT_FW
-        frame_id = 2
-
-        frame = proto.create_frame(cmd, frame_id, endpoint)
-
-        proto.write_frame(self.conn, frame)
-
-        response = proto.read_frame(self.conn)
-
-        if not proto.ensure_frames(frame, response):
-            raise error.TKeyProtocolError('Response mismatch')
+        response = proto.send_command(
+            self.conn, proto.cmdNameVersion, proto.ENDPOINT_FW, 2)
 
         data = response[2:]
 
@@ -102,18 +92,8 @@ class TKey:
         Total              4 bytes (32 bits)
 
         """
-        cmd      = proto.cmdGetUDI
-        endpoint = proto.ENDPOINT_FW
-        frame_id = 2
-
-        frame = proto.create_frame(cmd, frame_id, endpoint)
-
-        proto.write_frame(self.conn, frame)
-
-        response = proto.read_frame(self.conn)
-
-        if not proto.ensure_frames(frame, response):
-            raise error.TKeyProtocolError('Response mismatch')
+        response = proto.send_command(
+            self.conn, proto.cmdGetUDI, proto.ENDPOINT_FW, 2)
 
         data = response[3:]
 
@@ -146,13 +126,6 @@ class TKey:
         Load an application onto the device
 
         """
-        cmd      = proto.cmdLoadApp
-        endpoint = proto.ENDPOINT_FW
-        frame_id = 2
-
-        # Create header and command bytes
-        frame = proto.create_frame(cmd, frame_id, endpoint)
-
         # Calculate size and BLAKE2s digest from source file
         try:
             file_size = os.path.getsize(file)
@@ -165,25 +138,24 @@ class TKey:
             raise error.TKeyLoadError('File too big (%d > %d)' % \
                 (file_size, APP_MAXSIZE))
 
+        # Initialize command data
+        data = bytearray(127)
+
         # Set size for application payload (4 bytes, little endian)
         size_bytes = int(file_size).to_bytes(4, byteorder='little')
-        frame[2] = size_bytes[0]
-        frame[3] = size_bytes[1]
-        frame[4] = size_bytes[2]
-        frame[5] = size_bytes[3]
+        data[0] = size_bytes[0]
+        data[1] = size_bytes[1]
+        data[2] = size_bytes[2]
+        data[3] = size_bytes[3]
 
         # Handle user-supplied secret if provided
-        frame[6] = 0
+        data[4] = 0
         if secret != None:
-            frame[6] = 1
-            frame[7:7+len(secret)] = bytes(secret, encoding='utf8')
+            data[4] = 1
+            data[5:7+len(secret)] = bytes(secret, encoding='utf8')
 
-        proto.write_frame(self.conn, frame)
-
-        response = proto.read_frame(self.conn)
-
-        if not proto.ensure_frames(frame, response):
-            raise error.TKeyProtocolError('Response mismatch')
+        response = proto.send_command(
+            self.conn, proto.cmdLoadApp, proto.ENDPOINT_FW, 2, data)
 
         load_status = response[2]
         if load_status == 1:
@@ -203,13 +175,6 @@ class TKey:
         Load application data onto the device and return BLAKE2s digest
 
         """
-        cmd      = proto.cmdLoadAppData
-        endpoint = proto.ENDPOINT_FW
-        frame_id = 2
-
-        # Create header and command bytes
-        frame = proto.create_frame(cmd, frame_id, endpoint)
-
         dataframes = []
 
         with io.open(file, 'rb') as f:
@@ -223,16 +188,8 @@ class TKey:
 
         for df in dataframes:
 
-            # Create a full frame with header, command and data
-            appframe = bytearray(frame)
-            appframe[2:2+len(df)] = df
-
-            proto.write_frame(self.conn, appframe)
-
-            response = proto.read_frame(self.conn)
-
-            if not proto.ensure_frames(appframe, response):
-                raise error.TKeyProtocolError('Response mismatch')
+            response = proto.send_command(
+                self.conn, proto.cmdLoadAppData, proto.ENDPOINT_FW, 2, df)
 
             response_id, status = response[1:3]
             if status == 1:
