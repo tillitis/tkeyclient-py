@@ -63,6 +63,15 @@ class TKey:
         return False
 
 
+    def __repr__(self):
+        """
+        Return string with expession required to recreate object instance
+
+        """
+        return "{0}('{1}', speed={2}, timeout={3})".format(
+            type(self).__name__, self.conn.port, self.conn.baudrate, self.conn.timeout)
+
+
     def connect(self) -> None:
         """
         Open connection to the given serial device
