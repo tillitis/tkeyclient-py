@@ -66,7 +66,7 @@ def load_app(args):
     """
     # Prompt for user-supplied secret if requested
     secret = None
-    if args.secret == True:
+    if args.secret:
         logger.debug('Asking for user-supplied secret (USS)')
         secret = getpass.getpass(prompt='Enter secret: ')
 

@@ -157,7 +157,7 @@ def write_frame(conn: serial.Serial, data: bytes) -> int:
 
     try:
         written = conn.write(data)
-        if written == None:
+        if written is None:
             written = 0
     except serial.SerialException as e:
         raise error.TKeyWriteError(e)
@@ -242,7 +242,7 @@ def ensure_frames(command: bytes, response: bytes) -> bool:
         if not rid == rspLoadApp.id:
             return False
     elif cid == cmdLoadAppData.id:
-        if not rid in [rspLoadAppData.id, rspLoadAppDataReady.id]:
+        if rid not in [rspLoadAppData.id, rspLoadAppDataReady.id]:
             return False
     elif cid == cmdGetUDI.id:
         if not rid == rspGetUDI.id:

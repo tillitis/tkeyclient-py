@@ -37,7 +37,7 @@ def test_proto_data_length_exists():
     Assert that PROTO_DATA_LENGTH exists and is a list
 
     """
-    assert proto.PROTO_DATA_LENGTH and type(proto.PROTO_DATA_LENGTH) == list
+    assert proto.PROTO_DATA_LENGTH and isinstance(proto.PROTO_DATA_LENGTH, list)
 
 
 def test_create_frame_valid_header():
@@ -162,7 +162,7 @@ def test_ensure_frame_compare_valid_command_response():
         rsp[0] |= 1 << 2
         rsp[1] = response.id
 
-        assert proto.ensure_frames(cmd, rsp) == True
+        assert proto.ensure_frames(cmd, rsp)
 
 
 def test_ensure_frame_compare_wrong_response():
@@ -180,7 +180,7 @@ def test_ensure_frame_compare_wrong_response():
         # Set status flag and response ID
         rsp[1] = 0x99
 
-        assert proto.ensure_frames(cmd, rsp) == False
+        assert not proto.ensure_frames(cmd, rsp)
 
 
 def test_ensure_frame_compare_wrong_frame_id():
@@ -195,7 +195,7 @@ def test_ensure_frame_compare_wrong_frame_id():
     response[0] |= 2 << 5
     response[1] = 0x02
 
-    assert not proto.ensure_frames(command, response) == True
+    assert not proto.ensure_frames(command, response)
 
 
 def test_ensure_frame_compare_wrong_endpoint():
@@ -210,7 +210,7 @@ def test_ensure_frame_compare_wrong_endpoint():
     response[0] |= 1 << 3
     response[1] = 0x02
 
-    assert not proto.ensure_frames(command, response) == True
+    assert not proto.ensure_frames(command, response)
 
 
 def test_write_frame_serial_exception():

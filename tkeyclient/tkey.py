@@ -39,7 +39,7 @@ class TKey:
             raise error.TKeyConfigError(e)
 
         # Open serial port if requested
-        if connect == True:
+        if connect:
             self.connect()
 
 
@@ -190,7 +190,7 @@ class TKey:
 
         # Handle user-supplied secret if provided
         data[4] = 0
-        if secret != None:
+        if secret is not None:
             data[4] = 1
             data[5:5+len(secret)] = bytes(secret, encoding='utf8')
 

@@ -11,6 +11,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-xdist = "*"
 tkeyclient = {file = ".", editable = true}
+ruff = "*"
 
 [requires]
 python_version = "3.12"

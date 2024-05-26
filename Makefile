@@ -18,6 +18,10 @@ install:
 install_dev:
 	$(PIPENV_INSTALL) -d -e .
 
+# Run linter against entire codebase
+lint:
+	ruff check .
+
 # Run test suite
 test:
 	$(PYTEST)

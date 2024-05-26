@@ -167,7 +167,7 @@ def test_connection_test_opened(monkeypatch):
 
     monkeypatch.setattr(tkey, 'conn', mock_serial)
 
-    assert tkey.test() == True
+    assert tkey.test()
 
 
 def test_connection_test_closed(monkeypatch):
@@ -181,7 +181,7 @@ def test_connection_test_closed(monkeypatch):
 
     monkeypatch.setattr(tkey, 'conn', mock_serial)
 
-    assert tkey.test() == False
+    assert not tkey.test()
 
 
 def test_get_name_version_success(monkeypatch):
