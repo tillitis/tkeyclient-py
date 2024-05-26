@@ -114,7 +114,7 @@ This repository includes a small client which uses the package to interact with
 a TKey device:
 
 ```
-$ python3 ./client.py -h                     
+$ python3 ./client.py -h
 usage: client.py [-h] [-v] [command] ...
 
 Python client for interacting with the Tillitis TKey.
@@ -161,7 +161,7 @@ $ python3 ./client.py udi -d /dev/ttyACM0
 ### Load application onto device
 
 ```
-$ python3 ./client.py load -d /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/app.bin   
+$ python3 ./client.py load -d /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/app.bin
 2024-05-05 22:16:09,055 - [INFO] cmd: Application loaded: /home/user/src/tillitis/tkey-testapps/apps/blink/app.bin
 ```
 
@@ -172,7 +172,7 @@ received over the serial port will be printed out in binary and hexadecimal
 values:
 
 ```
-$ TKEY_DEBUG=1 python3 ./client.py load -d /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/app.bin 
+$ TKEY_DEBUG=1 python3 ./client.py load -d /dev/ttyACM0 ~/src/tillitis/tkey-testapps/apps/blink/app.bin
 write_frame(): Sending data:
 ============================
 

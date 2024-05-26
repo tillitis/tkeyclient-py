@@ -226,7 +226,7 @@ def test_write_frame_serial_exception():
 
     mock_serial.write.assert_called_once()
 
-    
+
 def test_write_frame_bytes_written():
     """
     Assert successful writing to serial device, 1337 bytes
