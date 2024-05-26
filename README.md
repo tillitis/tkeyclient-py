@@ -69,13 +69,13 @@ tk.disconnect()
 The TKey instance exposes methods that can be used for interacting with the
 device:
 
-| Method | Description |
-| :----- | :---------- |
-| `TKey.connect` | Establish serial connection to device |
-| `TKey.disconnect` | Close serial connection to device |
-| `TKey.test` | Verify that serial port can be opened |
-| `TKey.get_name_version` | Get device firmware name and version |
-| `TKey.load_app` | Load application onto device |
+| Method | Description | Return values |
+| :----- | :---------- | :------------ |
+| `TKey.connect` | Establish serial connection to device | `None` |
+| `TKey.disconnect` | Close serial connection to device | `None` |
+| `TKey.test` | Verify that serial port can be opened | `bool` |
+| `TKey.get_name_version` | Get device model, name and version | `str, str, int` |
+| `TKey.load_app` | Load application onto device | `None` |
 
 ## Client
 
