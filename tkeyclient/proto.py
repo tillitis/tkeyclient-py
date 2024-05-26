@@ -149,6 +149,10 @@ def read_frame(conn: serial.Serial) -> bytes | None:
     # Read all the remaining data
     data = conn.read_until()
 
+    # Ensure data matches length from header
+    if not len(data) == length:
+        raise error.TKeyProtocolError('Unexpected response data length')
+
     response = bytearray(1 + length)
 
     response[0] = header
