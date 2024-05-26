@@ -1,5 +1,7 @@
 import serial
 
+from collections import namedtuple
+
 import tkeyclient.error as error
 
 
@@ -17,6 +19,18 @@ FW_RSP_LOAD_APP_DATA = 0x06
 FW_RSP_LOAD_APP_DATA_READY = 0x07
 FW_CMD_GET_UDI = 0x08
 FW_RSP_GET_UDI = 0x09
+
+# Named tuples for command and response frames
+fwCommand = namedtuple('fwCommand', ['id', 'length'])
+
+cmdNameVersion      = fwCommand(0x01, 0)
+rspNameVersion      = fwCommand(0x02, 2)
+cmdLoadApp          = fwCommand(0x03, 3)
+rspLoadApp          = fwCommand(0x04, 1)
+cmdLoadAppData      = fwCommand(0x05, 3)
+rspLoadAppData      = fwCommand(0x06, 1)
+rspLoadAppDataReady = fwCommand(0x07, 3)
+
 
 # Data lengths for use with command/response frames
 PROTO_DATA_LENGTH = [
@@ -152,6 +166,37 @@ def read_frame(conn: serial.Serial) -> bytes | None:
     response[1:] = data
 
     return response
+
+
+def ensure_frames(command: bytes, response: bytes) -> bool:
+    """
+    Ensure that a response matches a command, by checking the frame header and
+    command ID for both of them.
+
+    """
+    cmd_header = parse_header(command[0])
+    res_header = parse_header(response[0])
+
+    # Compare frame ID and endpoint
+    if not cmd_header[0:2] == res_header[0:2]:
+        return False
+
+    # Get command and response ID
+    cid = command[1]
+    rid = response[1]
+
+    # Compare ID in command and response
+    if cid == cmdNameVersion.id:
+        if not rid == rspNameVersion.id:
+            return False
+    elif cid == cmdLoadApp.id:
+        if not rid == rspLoadApp.id:
+            return False
+    elif cid == cmdLoadAppData.id:
+        if not rid in [rspLoadAppData.id, rspLoadAppDataReady.id]:
+            return False
+
+    return True
 
 
 def debug_frame(frame: bytes) -> None:

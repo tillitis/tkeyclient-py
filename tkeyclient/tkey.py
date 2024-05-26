@@ -72,6 +72,9 @@ class TKey:
 
         response = proto.read_frame(self.conn)
 
+        if not proto.ensure_frames(frame, response):
+            raise error.TKeyProtocolError('Response mismatch')
+
         data = response[2:]
 
         name0 = data[0:][:4].decode('ascii').rstrip()
@@ -119,6 +122,9 @@ class TKey:
 
         response = proto.read_frame(self.conn)
 
+        if not proto.ensure_frames(frame, response):
+            raise error.TKeyProtocolError('Response mismatch')
+
         load_status = response[2]
         if load_status == 1:
             raise error.TKeyLoadError('Device not ready (1 = STATUS_BAD)')
@@ -165,6 +171,9 @@ class TKey:
             proto.write_frame(self.conn, appframe)
 
             response = proto.read_frame(self.conn)
+
+            if not proto.ensure_frames(appframe, response):
+                raise error.TKeyProtocolError('Response mismatch')
 
             response_id, status = response[1:3]
             if status == 1:
