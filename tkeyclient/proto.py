@@ -64,31 +64,31 @@ PROTO_DATA_LENGTH = [
 # 128+1 bytes in length.
 
 
-def create_frame(cmd_id: int, frame_id: int, endpoint: int, length: int) -> bytearray:
+def create_frame(cmd: fwCommand, frame_id: int, endpoint: int) -> bytearray:
     """
     Create protocol frame
 
     """
-    if cmd_id > 255:
+    if cmd.id > 255:
         raise error.TKeyProtocolError('Command ID must not exceed one byte [0..255]')
     if frame_id > 3:
         raise error.TKeyProtocolError('Frame ID must not exceed two bits [0..3]')
     if endpoint > 3:
         raise error.TKeyProtocolError('Frame ID must not exceed two bits [0..3]')
-    if length > 3:
+    if cmd.length > 3:
         raise error.TKeyProtocolError('Length value must not exceed two bits [0..3]')
 
     # Put frame id, endpoint and length in frame header byte
-    header = (frame_id << 5) | (endpoint << 3) | length
+    header = (frame_id << 5) | (endpoint << 3) | cmd.length
 
     # Lookup command length in bytes from the length bits
-    data_length = PROTO_DATA_LENGTH[length]
+    data_length = PROTO_DATA_LENGTH[cmd.length]
 
     # Create protocol frame with size of header + command length
     frame = bytearray(1 + data_length)
 
     frame[0] = header  # Set header byte
-    frame[1] = cmd_id  # Set command byte
+    frame[1] = cmd.id  # Set command byte
 
     return frame
 

@@ -61,12 +61,11 @@ class TKey:
         Retrieve name and version of the device
 
         """
+        cmd      = proto.cmdNameVersion
         endpoint = proto.ENDPOINT_FW
-        cmd_id   = proto.cmdNameVersion.id
-        length   = proto.cmdNameVersion.length
         frame_id = 2
 
-        frame = proto.create_frame(cmd_id, frame_id, endpoint, length)
+        frame = proto.create_frame(cmd, frame_id, endpoint)
 
         proto.write_frame(self.conn, frame)
 
@@ -90,13 +89,12 @@ class TKey:
         Load an application onto the device
 
         """
+        cmd      = proto.cmdLoadApp
         endpoint = proto.ENDPOINT_FW
-        cmd_id   = proto.cmdLoadApp.id
-        length   = proto.cmdLoadApp.length
         frame_id = 2
 
         # Create header and command bytes
-        frame = proto.create_frame(cmd_id, frame_id, endpoint, length)
+        frame = proto.create_frame(cmd, frame_id, endpoint)
 
         # Calculate size and BLAKE2s digest from source file
         try:
@@ -143,13 +141,12 @@ class TKey:
         Load application data onto the device and return BLAKE2s digest
 
         """
+        cmd      = proto.cmdLoadAppData
         endpoint = proto.ENDPOINT_FW
-        cmd_id   = proto.cmdLoadAppData.id
-        length   = proto.cmdLoadAppData.length
         frame_id = 2
 
         # Create header and command bytes
-        frame = proto.create_frame(cmd_id, frame_id, endpoint, length)
+        frame = proto.create_frame(cmd, frame_id, endpoint)
 
         dataframes = []
 
