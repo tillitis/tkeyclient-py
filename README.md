@@ -40,7 +40,7 @@ settings.
 
 ```Python
 # Import the package
-from tillitis.tkey import TKey
+from tkeyclient.tkey import TKey
 
 # With default baud rate and timeout values
 tk = TKey('/dev/ttyACM0')
