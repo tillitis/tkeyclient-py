@@ -482,3 +482,22 @@ def test_load_app_data_unexpected_response(mock_fopen, monkeypatch):
 
     with pytest.raises(error.TKeyProtocolError):
         tkey._load_app_data(4, '/tmp/dummy_file')
+
+
+def test_class_repr():
+    """
+    Assert that TKey.__repr__ returns the expected string representation of an
+    instantiated TKey object.
+
+    """
+    exp_port = '/dev/ttyDummy0'
+    exp_speed = 1337
+    exp_timeout = 42
+
+    exp_string = "TKey('{0}', speed={1}, timeout={2})".format(
+        exp_port, exp_speed, exp_timeout
+    )
+
+    tkey = TKey(exp_port, speed=exp_speed, timeout=exp_timeout)
+
+    assert str(tkey) == exp_string
