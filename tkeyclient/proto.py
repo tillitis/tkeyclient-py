@@ -9,7 +9,6 @@ command/response data.
 
 import os
 
-from typing import Tuple
 from collections import namedtuple
 
 import serial
@@ -124,7 +123,7 @@ def create_frame(
     return frame
 
 
-def parse_header(header: int) -> Tuple[int, int, int, int]:
+def parse_header(header: int) -> tuple[int, int, int, int]:
     """Parse protocol header and return field values.
 
     Args:
