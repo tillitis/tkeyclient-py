@@ -3,6 +3,8 @@ import logging
 from tkeyclient.error import TKeyError
 from tkeyclient.tkey import TKey
 
+import tkeyclient.proto as proto
+
 
 logger = logging.getLogger('root')
 
@@ -31,3 +33,10 @@ def get_name_version(args):
 
     """
     tk = TKey(args.device)
+
+    try:
+        name0, name1, version = tk.get_name_version()
+        logger.info('Firmware name0:%s name1:%s version:%d' % \
+            (name0, name1, version))
+    except TKeyError as e:
+        logger.error('Failed to get device info: %s' % e)
