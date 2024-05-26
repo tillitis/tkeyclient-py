@@ -148,11 +148,15 @@ def write_frame(conn: serial.Serial, data: bytes) -> int:
     """
     written = 0
 
-    if debug_enabled():
-        print('write_frame(): Sending data:')
-        print('============================\n')
-        debug_frame(data)
-        print('')
+    debug_marks = { 0: 'Header' }
+
+    if len(data) > 1:
+        debug_marks[1] = 'Command'
+    if len(data) > 2:
+        debug_marks[2] = 'Data start'
+
+    debug_print(data, header='write_frame(): Sending data:',
+                marks=debug_marks)
 
     try:
         written = conn.write(data)
@@ -180,11 +184,7 @@ def read_frame(conn: serial.Serial) -> bytes:
     if len(data) < 1:
         raise error.TKeyReadError('No response data')
 
-    if debug_enabled():
-        print('read_frame(): Received header:')
-        print('==============================\n')
-        debug_frame(data)
-        print('')
+    debug_marks = { 0: 'Header' }
 
     header = data[0]
     frame_id, endpoint, status, length = parse_header(header)
@@ -192,16 +192,20 @@ def read_frame(conn: serial.Serial) -> bytes:
     # If status was NOK, throw away remaining data and raise exception
     if status == 1:
         conn.read(length)
+        debug_print(data, header='read_frame(): Received data:',
+                    marks=debug_marks)
         raise error.TKeyStatusError('Response status code not OK (1)')
 
     # Read all the remaining data
     data = conn.read(length)
 
-    if debug_enabled():
-        print('read_frame(): Received data:')
-        print('============================\n')
-        debug_frame(data)
-        print('')
+    if len(data) > 1:
+        debug_marks[1] = 'Response'
+    if len(data) > 2:
+        debug_marks[2] = 'Data start'
+
+    debug_print(bytes([header]) + data, header='read_frame(): Received data:',
+                marks=debug_marks)
 
     # Ensure data matches length from header
     if not len(data) == length:
@@ -246,13 +250,34 @@ def ensure_frames(command: bytes, response: bytes) -> bool:
     return True
 
 
-def debug_frame(frame: bytes) -> None:
+def debug_print(frame: bytes, header: str = str(), marks: dict = {}) -> None:
+    """
+    Print debug_frame output if debug is enabled, with optional header
+
+    """
+    if debug_enabled():
+        if header:
+            print(header)
+            print(('=' * len(header)) + '\n')
+        debug_frame(frame, marks=marks)
+        print('')
+
+
+def debug_frame(frame: bytes, marks: dict = {}) -> None:
     """
     Print the bytes of a given frame (in binary and hex)
 
     """
     for i, d in enumerate(frame):
-        print('Byte {0:0>3}:  {1:0>8b}  0x{1:0>2x}'.format(i + 1, d))
+        # Bytes are 1-indexed for human output, but 0-indexed for everything
+        # else (including marks).
+        num = i + 1
+        if i in marks.keys():
+            print('Byte {0:0>3}:  {1:0>8b}  0x{1:0>2x}  <- {2}'.format(
+                num, d, marks.get(i)))
+        else:
+            print('Byte {0:0>3}:  {1:0>8b}  0x{1:0>2x}'.format(
+                num, d))
 
 
 def debug_enabled() -> bool:
