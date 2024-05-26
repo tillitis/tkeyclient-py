@@ -77,13 +77,13 @@ def create_frame(cmd: fwCommand, frame_id: int, endpoint: int, data: bytes = byt
     Create protocol frame
 
     """
-    if cmd.id > 255:
+    if cmd.id < 0 or cmd.id > 255:
         raise error.TKeyProtocolError('Command ID must not exceed one byte [0..255]')
-    if frame_id > 3:
+    if frame_id < 0 or frame_id > 3:
         raise error.TKeyProtocolError('Frame ID must not exceed two bits [0..3]')
-    if endpoint > 3:
+    if endpoint < 0 or endpoint > 3:
         raise error.TKeyProtocolError('Frame ID must not exceed two bits [0..3]')
-    if cmd.length > 3:
+    if cmd.length < 0 or cmd.length > 3:
         raise error.TKeyProtocolError('Length value must not exceed two bits [0..3]')
     if data and len(data) > byte_length(cmd.length):
         raise error.TKeyProtocolError('Data exceeds command data length in header')
