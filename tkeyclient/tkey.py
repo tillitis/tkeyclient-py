@@ -68,15 +68,9 @@ class TKey:
 
         frame = proto.create_frame(cmd_id, frame_id, endpoint, length)
 
-        try:
-            proto.write_frame(self.conn, frame)
-        except serial.SerialException as e:
-            raise error.TKeyWriteError(e)
+        proto.write_frame(self.conn, frame)
 
-        try:
-            response = proto.read_frame(self.conn)
-        except serial.SerialException as e:
-            raise error.TKeyReadError(e)
+        response = proto.read_frame(self.conn)
 
         data = response[2:]
 
@@ -118,15 +112,9 @@ class TKey:
         # @TODO: No USS provided, fix this
         frame[6] = 0
 
-        try:
-            proto.write_frame(self.conn, frame)
-        except serial.SerialException as e:
-            raise error.TKeyWriteError(e)
+        proto.write_frame(self.conn, frame)
 
-        try:
-            response = proto.read_frame(self.conn)
-        except serial.SerialException as e:
-            raise error.TKeyReadError(e)
+        response = proto.read_frame(self.conn)
 
         load_status = response[2]
         if load_status == 1:
@@ -171,15 +159,9 @@ class TKey:
             appframe = bytearray(frame)
             appframe[2:2+len(df)] = df
 
-            try:
-                proto.write_frame(self.conn, appframe)
-            except serial.SerialException as e:
-                raise error.TKeyWriteError(e)
+            proto.write_frame(self.conn, appframe)
 
-            try:
-                response = proto.read_frame(self.conn)
-            except serial.SerialException as e:
-                raise error.TKeyReadError(e)
+            response = proto.read_frame(self.conn)
 
             response_id, status = response[1:3]
             if status == 1:

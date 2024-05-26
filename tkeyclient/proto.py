@@ -109,7 +109,14 @@ def write_frame(conn: serial.Serial, data: bytes) -> int | None:
     Write data to serial device
 
     """
-    return conn.write(data)
+    written = 0
+
+    try:
+        written = conn.write(data)
+    except serial.SerialException as e:
+        raise error.TKeyWriteError(e)
+
+    return written
 
 
 def read_frame(conn: serial.Serial) -> bytes | None:
@@ -118,7 +125,13 @@ def read_frame(conn: serial.Serial) -> bytes | None:
 
     """
     # Attempt to read the response header
-    data = conn.read(1)
+    data = bytes()
+
+    try:
+        data = conn.read(1)
+    except serial.SerialException as e:
+        raise error.TKeyReadError(e)
+
     if len(data) < 1:
         raise error.TKeyReadError('No response data')
 
