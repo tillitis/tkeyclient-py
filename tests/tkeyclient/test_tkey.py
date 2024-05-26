@@ -256,7 +256,7 @@ def test_get_udi_string_success(monkeypatch):
 @patch('builtins.open', new_callable=mock_open, read_data=b'1337')
 def test_get_digest_success(mock):
     """
-    Assert that TKey.get_digest() returns expected BLAKE2s digest
+    Assert that TKey._get_digest() returns expected BLAKE2s digest
 
     """
     dummy_file = '/tmp/dummy_file'
@@ -264,7 +264,7 @@ def test_get_digest_success(mock):
 
     tkey = TKey('/dev/ttyDummy0')
 
-    result = tkey.get_digest(dummy_file)
+    result = tkey._get_digest(dummy_file)
 
     mock.assert_called_once_with(dummy_file, 'rb')
 
@@ -285,7 +285,7 @@ def test_load_app_file_not_found_exception(monkeypatch):
 
     tkey = TKey('/dev/ttyDummy0')
 
-    monkeypatch.setattr(tkey, 'get_digest', file_not_found)
+    monkeypatch.setattr(tkey, '_get_digest', file_not_found)
 
     with pytest.raises(error.TKeyLoadError):
         tkey.load_app('/tmp/dummy_file')
@@ -302,7 +302,7 @@ def test_load_app_file_size_exception(mock_getsize, monkeypatch):
 
     tkey = TKey('/dev/ttyDummy0')
 
-    monkeypatch.setattr(tkey, 'get_digest', mock_digest)
+    monkeypatch.setattr(tkey, '_get_digest', mock_digest)
 
     with pytest.raises(error.TKeyLoadError):
         tkey.load_app('/tmp/dummy_file')
@@ -331,7 +331,7 @@ def test_load_app_with_user_secret(mock_fopen, mock_getsize, monkeypatch):
 
     load_app_data = Mock(return_value=expected)
 
-    monkeypatch.setattr(tkey, 'load_app_data', load_app_data)
+    monkeypatch.setattr(tkey, '_load_app_data', load_app_data)
 
     tkey.load_app('/tmp/dummy_file', secret=secret)
 
@@ -387,7 +387,7 @@ def test_load_app_compare_hash_success(mock_fopen, mock_getsize, monkeypatch):
 
     load_app_data = Mock(return_value=expected)
 
-    monkeypatch.setattr(tkey, 'load_app_data', load_app_data)
+    monkeypatch.setattr(tkey, '_load_app_data', load_app_data)
 
     tkey.load_app('/tmp/dummy_file')
 
@@ -415,7 +415,7 @@ def test_load_app_compare_hash_failed(mock_fopen, mock_getsize, monkeypatch):
 
     load_app_data = Mock(return_value=wrong)
 
-    monkeypatch.setattr(tkey, 'load_app_data', load_app_data)
+    monkeypatch.setattr(tkey, '_load_app_data', load_app_data)
 
     with pytest.raises(error.TKeyLoadError):
         tkey.load_app('/tmp/dummy_file')
@@ -439,7 +439,7 @@ def test_load_app_data_done_success(mock_fopen, monkeypatch):
 
     tkey = TKey('/dev/ttyDummy0')
 
-    digest = tkey.load_app_data(4, '/tmp/dummy_file')
+    digest = tkey._load_app_data(4, '/tmp/dummy_file')
 
     assert digest == expected
 
@@ -461,7 +461,7 @@ def test_load_app_data_bad_status(mock_fopen, monkeypatch):
     tkey = TKey('/dev/ttyDummy0')
 
     with pytest.raises(error.TKeyLoadError):
-        tkey.load_app_data(4, '/tmp/dummy_file')
+        tkey._load_app_data(4, '/tmp/dummy_file')
 
 
 @patch('io.open', new_callable=mock_open, read_data=b'1337')
@@ -481,4 +481,4 @@ def test_load_app_data_unexpected_response(mock_fopen, monkeypatch):
     tkey = TKey('/dev/ttyDummy0')
 
     with pytest.raises(error.TKeyProtocolError):
-        tkey.load_app_data(4, '/tmp/dummy_file')
+        tkey._load_app_data(4, '/tmp/dummy_file')

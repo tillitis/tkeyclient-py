@@ -11,8 +11,6 @@ Typical usage example:
   name0, name1, version = tkey.get_name_version()
 """
 
-from typing import Tuple
-
 import io
 import os
 import serial
@@ -118,7 +116,7 @@ class TKey:
         """
         return self.conn.is_open
 
-    def get_name_version(self) -> Tuple[str, str, int]:
+    def get_name_version(self) -> tuple[str, str, int]:
         """Retrieve name and version of the device and firmware.
 
         Returns:
@@ -150,7 +148,7 @@ class TKey:
     # Serial number      2 bytes
     #
     # Total              4 bytes (32 bits)
-    def get_udi(self) -> Tuple[int, int, int, int, int]:
+    def get_udi(self) -> tuple[int, int, int, int, int]:
         """Retrieve unique device identifier (UDI) of the device.
 
         These values can be used to uniquely identify a specific TKey. They are
@@ -220,7 +218,7 @@ class TKey:
         # Calculate size and BLAKE2s digest from source file
         try:
             file_size = os.path.getsize(file)
-            file_digest = self.get_digest(file)
+            file_digest = self._get_digest(file)
         except FileNotFoundError as e:
             raise error.TKeyLoadError(e) from e
 
@@ -255,7 +253,7 @@ class TKey:
             raise error.TKeyLoadError('Device not ready (1 = STATUS_BAD)')
 
         # Upload application data to device and get BLAKE2s digest
-        result_digest = self.load_app_data(file_size, file)
+        result_digest = self._load_app_data(file_size, file)
 
         # Compare application hashes
         if not file_digest == result_digest:
@@ -264,7 +262,7 @@ class TKey:
                 % (file_digest.hex(), result_digest.hex())
             )
 
-    def load_app_data(self, file_size: int, file: str) -> bytes:
+    def _load_app_data(self, file_size: int, file: str) -> bytes:
         """Load application data onto the device and return BLAKE2s-256 hash digest.
 
         For internal use by the `load_app` method.
@@ -313,7 +311,7 @@ class TKey:
 
         return bytes(digest)
 
-    def get_digest(self, file) -> bytes:
+    def _get_digest(self, file) -> bytes:
         """Return BLAKE2s-256 digest for given file as bytes.
 
         Args:
