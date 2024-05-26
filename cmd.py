@@ -40,3 +40,17 @@ def get_name_version(args):
             (name0, name1, version))
     except TKeyError as e:
         logger.error('Failed to get device info: %s' % e)
+
+
+def load_app(args):
+    """
+    Load an application onto the given device
+
+    """
+    tk = TKey(args.device)
+
+    try:
+        tk.load_app(args.file)
+        logger.info('Application loaded: %s' % args.file)
+    except TKeyError as e:
+        logger.error('Failed to load application on device: %s' % e)

@@ -1,4 +1,8 @@
+import io
+import os
 import serial
+
+from hashlib import blake2s
 
 import tkeyclient.error as error
 import tkeyclient.proto as proto
@@ -84,3 +88,122 @@ class TKey:
         version = int.from_bytes(data[8:][:4], byteorder='little')
 
         return name0, name1, version
+
+
+    def load_app(self, file):
+        """
+        Load an application onto the device
+
+        """
+        endpoint = proto.ENDPOINT_FW
+        cmd_id   = proto.FW_CMD_LOAD_APP
+        length   = 3
+        frame_id = 2
+
+        # Create header and command bytes
+        frame = proto.create_frame(cmd_id, frame_id, endpoint, length)
+
+        # Calculate size and BLAKE2s digest from source file
+        try:
+            file_size = os.path.getsize(file)
+            file_digest = self.get_digest(file)
+        except FileNotFoundError as e:
+            raise error.TKeyLoadError(e)
+
+        # Set size for application payload (4 bytes, little endian)
+        size_bytes = int(file_size).to_bytes(4, byteorder='little')
+        frame[2] = size_bytes[0]
+        frame[3] = size_bytes[1]
+        frame[4] = size_bytes[2]
+        frame[5] = size_bytes[3]
+
+        # @TODO: No USS provided, fix this
+        frame[6] = 0
+
+        self.connect()
+
+        try:
+            proto.write_frame(self.conn, frame)
+        except serial.SerialException as e:
+            raise error.TKeyWriteError(e)
+
+        try:
+            response = proto.read_frame(self.conn)
+        except serial.SerialException as e:
+            raise error.TKeyReadError(e)
+
+        load_status = response[2]
+        if load_status == 1:
+            raise error.TKeyLoadError('Device not ready (1 = STATUS_BAD)')
+
+        # Upload application data to device and get BLAKE2s digest
+        result_digest = self.load_app_data(file_size, file)
+
+        self.disconnect()
+
+        # Compare application hashes
+        if not file_digest == result_digest:
+            raise error.TKeyLoadError('Hash digests do not match (%s != %s)' % \
+                                      (file_digest.hex(), result_digest.hex()))
+
+
+    def load_app_data(self, file_size: int, file: str) -> bytes:
+        """
+        Load application data onto the device and return BLAKE2s digest
+
+        """
+        endpoint = proto.ENDPOINT_FW
+        cmd_id   = proto.FW_CMD_LOAD_APP_DATA
+        length   = 3
+        frame_id = 2
+
+        # Create header and command bytes
+        frame = proto.create_frame(cmd_id, frame_id, endpoint, length)
+
+        dataframes = []
+
+        with io.open(file, 'rb') as f:
+            bytes_read = 0
+            while bytes_read < file_size:
+                data = f.read(127)
+                dataframes.append(data)
+                bytes_read += len(data)
+
+        digest = bytearray(32)
+
+        for df in dataframes:
+
+            # Create a full frame with header, command and data
+            appframe = bytearray(frame)
+            appframe[2:2+len(df)] = df
+
+            try:
+                proto.write_frame(self.conn, appframe)
+            except serial.SerialException as e:
+                raise error.TKeyWriteError(e)
+
+            try:
+                response = proto.read_frame(self.conn)
+            except serial.SerialException as e:
+                raise error.TKeyReadError(e)
+
+            response_id, status = response[1:3]
+            if status == 1:
+                raise error.TKeyLoadError('Bad status when writing (1 = STATUS_BAD)')
+
+            if response_id == proto.FW_RSP_LOAD_APP_DATA_READY:
+                digest = bytes(response[3:][:32])
+            elif not response_id == proto.FW_RSP_LOAD_APP_DATA:
+                raise error.TKeyProtocolError('Unexpected response code (%d)' % response_id)
+
+        return digest
+
+
+    def get_digest(self, file) -> bytes:
+        """
+        Return BLAKE2s digest for given file as bytes
+
+        """
+        with open(file, 'rb') as f:
+            data = f.read()
+        return bytes.fromhex(blake2s(data, digest_size=32).hexdigest())

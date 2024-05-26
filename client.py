@@ -25,6 +25,10 @@ if __name__ == '__main__':
     cmd_test = subparsers.add_parser('test', help='Check if given serial port can be opened', parents=[parser_dev])
     cmd_test.set_defaults(func=cmd.test_connection)
 
+    cmd_test = subparsers.add_parser('load', help='Load application onto device', parents=[parser_dev])
+    cmd_test.add_argument('file', type=str)
+    cmd_test.set_defaults(func=cmd.load_app)
+
     cmd_test = subparsers.add_parser('version', help='Get the name and version of stick', parents=[parser_dev])
     cmd_test.set_defaults(func=cmd.get_name_version)
 

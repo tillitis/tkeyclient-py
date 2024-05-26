@@ -15,3 +15,6 @@ class TKeyStatusError(TKeyError):
 
 class TKeyProtocolError(TKeyError):
     pass
+
+class TKeyLoadError(TKeyError):
+    pass
