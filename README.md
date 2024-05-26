@@ -176,30 +176,37 @@ $ TKEY_DEBUG=1 python3 ./client.py load -d /dev/ttyACM0 ~/src/tillitis/tkey-test
 write_frame(): Sending data:
 ============================
 
-Byte 001:  01010011  0x53
-Byte 002:  00000011  0x03
-Byte 003:  00011110  0x1e
+Byte 001:  01010011  0x53  <- Header
+Byte 002:  00000011  0x03  <- Command
+Byte 003:  00011110  0x1e  <- Data start
+Byte 004:  00000000  0x00
 [...]
-
-read_frame(): Received header:
-==============================
-
-Byte 001:  01010011  0x53
 
 read_frame(): Received data:
 ============================
 
-Byte 001:  00000111  0x07
-Byte 002:  00000000  0x00
-Byte 003:  10010101  0x95
+Byte 001:  01010001  0x51  <- Header
+Byte 002:  00000100  0x04  <- Response
+Byte 003:  00000000  0x00  <- Data start
+Byte 004:  00000000  0x00
 [...]
 
 write_frame(): Sending data:
 ============================
 
-Byte 001:  01010011  0x53
-Byte 002:  00000101  0x05
-Byte 003:  00110111  0x37
+Byte 001:  01010011  0x53  <- Header
+Byte 002:  00000101  0x05  <- Command
+Byte 003:  00110111  0x37  <- Data start
+Byte 004:  00000101  0x05
+[...]
+
+read_frame(): Received data:
+============================
+
+Byte 001:  01010011  0x53  <- Header
+Byte 002:  00000111  0x07  <- Response
+Byte 003:  00000000  0x00  <- Data start
+Byte 004:  10010101  0x95
 [...]
 ```
 
