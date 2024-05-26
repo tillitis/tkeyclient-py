@@ -117,5 +117,6 @@ This package has been developed and tested using a TKey of the following version
 
 ## TODO
 
+- Define software license for the project
 - Actually make this a real package that can be distributed and installed.
 - Implement remaining commands.
