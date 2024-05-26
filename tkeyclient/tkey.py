@@ -11,6 +11,7 @@ import os
 import serial
 
 from hashlib import blake2s
+from typing import Optional, Tuple
 
 import tkeyclient.error as error
 import tkeyclient.proto as proto
@@ -145,7 +146,7 @@ class TKey:
         """
         return self.conn.is_open
 
-    def get_name_version(self) -> tuple[str, str, int]:
+    def get_name_version(self) -> Tuple[str, str, int]:
         """Retrieve name and version of the device and firmware.
 
         Returns:
@@ -181,7 +182,7 @@ class TKey:
     #
     # Total              4 bytes (32 bits)
 
-    def get_udi(self) -> tuple[int, int, int, int, int]:
+    def get_udi(self) -> Tuple[int, int, int, int, int]:
         """Retrieve unique device identifier (UDI) of the device.
 
         These values can be used to uniquely identify a specific TKey. They are
@@ -237,7 +238,7 @@ class TKey:
             reserved, vendor, pid, revision, serial
         )
 
-    def load_app(self, file: str, secret: str | None = None) -> None:
+    def load_app(self, file: str, secret: Optional[str] = None) -> None:
         """Load an application onto the device.
 
         Args:

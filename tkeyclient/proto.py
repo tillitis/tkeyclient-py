@@ -10,6 +10,7 @@ command/response data.
 import os
 
 from collections import namedtuple
+from typing import Optional, Tuple
 
 import serial
 
@@ -125,7 +126,7 @@ def create_frame(
     return frame
 
 
-def parse_header(header: int) -> tuple[int, int, int, int]:
+def parse_header(header: int) -> Tuple[int, int, int, int]:
     """Parse protocol header and return field values.
 
     Args:
@@ -329,7 +330,7 @@ def byte_length(index: int) -> int:
     return PROTO_DATA_LENGTH[index]
 
 
-def debug_print(frame: bytes, header: str = '', marks: dict | None = None) -> None:
+def debug_print(frame: bytes, header: str = '', marks: Optional[dict] = None) -> None:
     """Print data if debug mode is enabled, with optional header and markers.
 
     Args:
@@ -345,7 +346,7 @@ def debug_print(frame: bytes, header: str = '', marks: dict | None = None) -> No
         print('')
 
 
-def debug_frame(frame: bytes, marks: dict | None = None) -> None:
+def debug_frame(frame: bytes, marks: Optional[dict] = None) -> None:
     """Print the bytes of a given frame (in binary and hex).
 
     Args:

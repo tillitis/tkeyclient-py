@@ -17,6 +17,8 @@ implemented.
 
 This project depends on [pySerial](https://pyserial.readthedocs.io/en/latest/index.html), a package for using serial ports.
 
+It is compatible with Python version 3.8 and later.
+
 ## Install
 
 Use pipenv to install the requirements listed in `Pipfile` in a virtual

@@ -5,6 +5,7 @@
 This module includes helper methods that can be used to list TKey devices
 currently connected to the system.
 """
+from typing import List
 
 from serial.tools import list_ports
 from serial.tools.list_ports_common import ListPortInfo
@@ -35,7 +36,7 @@ def find_device() -> ListPortInfo:
     return devices[0]
 
 
-def list_devices() -> list[ListPortInfo]:
+def list_devices() -> List[ListPortInfo]:
     """Return a list with serial device info for all TKeys connected.
 
     Returns:
