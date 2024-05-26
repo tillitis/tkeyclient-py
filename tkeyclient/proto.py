@@ -148,11 +148,11 @@ def read_frame(conn: serial.Serial) -> bytes:
 
     # If status was NOK, throw away remaining data and raise exception
     if status == 1:
-        conn.read_until()
+        conn.read(length)
         raise error.TKeyStatusError('Response status code not OK (1)')
 
     # Read all the remaining data
-    data = conn.read_until()
+    data = conn.read(length)
 
     # Ensure data matches length from header
     if not len(data) == length:
