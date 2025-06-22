@@ -1,5 +1,5 @@
-# Copyright (C) 2022-2024 - Tillitis AB
-# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2022-2025 - Tillitis AB
+# SPDX-License-Identifier: BSD-2-Clause
 """Helpers for listing and identifying connected TKey devices.
 
 This module includes helper methods that can be used to list TKey devices

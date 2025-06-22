@@ -1,5 +1,5 @@
-# Copyright (C) 2022-2024 - Tillitis AB
-# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2022-2025 - Tillitis AB
+# SPDX-License-Identifier: BSD-2-Clause
 
 from unittest.mock import Mock, patch, mock_open
 

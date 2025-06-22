@@ -1,5 +1,5 @@
-# Copyright (C) 2022-2024 - Tillitis AB
-# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2022-2025 - Tillitis AB
+# SPDX-License-Identifier: BSD-2-Clause
 """Module for low-level interaction with the TKey protocol.
 
 This module includes methods for reading and writing to a TKey device,
