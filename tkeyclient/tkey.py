@@ -248,10 +248,17 @@ class TKey:
         Raises:
             TKeyLoadError:
                 - If the binary cannot be found/read.
-                - If the binary is too big (size > APP_MAXSIZE)
+                - If the binary is too big (size > APP_MAXSIZE).
+                - If the device is not in firmware mode.
                 - If the device is not ready to load an application.
                 - If the BLAKE2s-256s digest of application received by device does not match the source binary.
         """
+        # Check if the device is in firmware mode
+        if not self._firmware_probe():
+            raise error.TKeyLoadError(
+                'Device not in firmware mode, unable to load application'
+            )
+
         # Calculate size and BLAKE2s digest from source file
         try:
             file_size = os.path.getsize(file)
@@ -361,3 +368,26 @@ class TKey:
         with open(file, 'rb') as f:
             data = f.read()
         return bytes.fromhex(blake2s(data, digest_size=32).hexdigest())
+
+    def _firmware_probe(self) -> bool:
+        """Check if the device is in firmware mode.
+
+        It’s recommended to check if the TKey is in firmware mode before
+        attempting to load a device application.
+
+        Typically this firmware probe is implemented by sending
+        FW_CMD_NAME_VERSION with a header byte indicating endpoint 2, firmware.
+
+        In a bad response (device is not in firmware mode), the fields in
+        FW_RSP_NAME_VERSION will be all zeroes (0x00).
+
+        Returns:
+            True if the device is in firmware mode, otherwise False.
+        """
+        try:
+            proto.send_command(
+                self.conn, proto.cmdNameVersion, proto.ENDPOINT_FW, 2
+            )
+            return True
+        except error.TKeyStatusError:
+            return False

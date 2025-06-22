@@ -283,8 +283,11 @@ def test_load_app_file_not_found_exception(monkeypatch):
     def file_not_found():
         raise FileNotFoundError()
 
+    mock_firmware_probe = Mock(return_value=True)
+
     tkey = TKey('/dev/ttyDummy0')
 
+    monkeypatch.setattr(tkey, '_firmware_probe', mock_firmware_probe)
     monkeypatch.setattr(tkey, '_get_digest', file_not_found)
 
     with pytest.raises(error.TKeyLoadError):
@@ -299,9 +302,11 @@ def test_load_app_file_size_exception(mock_getsize, monkeypatch):
     """
     mock_getsize.return_value = 1024 * 1024 * 1337
     mock_digest = Mock()
+    mock_firmware_probe = Mock(return_value=True)
 
     tkey = TKey('/dev/ttyDummy0')
 
+    monkeypatch.setattr(tkey, '_firmware_probe', mock_firmware_probe)
     monkeypatch.setattr(tkey, '_get_digest', mock_digest)
 
     with pytest.raises(error.TKeyLoadError):
@@ -482,6 +487,127 @@ def test_load_app_data_unexpected_response(mock_fopen, monkeypatch):
 
     with pytest.raises(error.TKeyProtocolError):
         tkey._load_app_data(4, '/tmp/dummy_file')
+
+
+@patch('os.path.getsize')
+@patch('io.open', new_callable=mock_open, read_data=b'1337')
+def test_load_app_data_probe_firwmare_mode(mock_open, mock_getsize, monkeypatch):
+    """
+    Assert that load_app() performs a probe to check that device is in firmware
+    mode.
+
+    """
+    mock_serial = create_mock_serial(is_open=True)
+
+    tkey = TKey('/dev/ttyDummy0')
+
+    monkeypatch.setattr(tkey, 'conn', mock_serial)
+
+    response = proto.create_frame(proto.rspLoadApp, 1, 2)
+    send_command = Mock(return_value=response)
+    monkeypatch.setattr(proto, 'send_command', send_command)
+
+    firmware_probe = Mock(return_value=True, name='tkey._firmware_probe')
+
+    mock_getsize.return_value = 1234
+    mock_digest = Mock(return_value=0x1337)
+
+    monkeypatch.setattr(tkey, '_firmware_probe', firmware_probe)
+    monkeypatch.setattr(tkey, '_get_digest', mock_digest)
+    monkeypatch.setattr(tkey, '_load_app_data', mock_digest)
+
+    tkey.load_app('/tmp/dummy_file')
+
+    firmware_probe.assert_called_once()
+
+
+@patch('os.path.getsize')
+@patch('io.open', new_callable=mock_open, read_data=b'1337')
+def test_load_app_data_failed_firmware_probe(mock_open, mock_getsize, monkeypatch):
+    """
+    Assert that load_app() raises TKeyLoadError if the device firmware mode
+    probe fails.
+
+    """
+    mock_serial = create_mock_serial(is_open=True)
+
+    tkey = TKey('/dev/ttyDummy0')
+
+    monkeypatch.setattr(tkey, 'conn', mock_serial)
+
+    response = proto.create_frame(proto.rspLoadApp, 1, 2)
+    send_command = Mock(return_value=response)
+    monkeypatch.setattr(proto, 'send_command', send_command)
+
+    firmware_probe = Mock(return_value=False, name='tkey._firmware_probe')
+
+    mock_getsize.return_value = 1234
+    mock_digest = Mock(return_value=0x1337)
+
+    monkeypatch.setattr(tkey, '_firmware_probe', firmware_probe)
+    monkeypatch.setattr(tkey, '_get_digest', mock_digest)
+    monkeypatch.setattr(tkey, '_load_app_data', mock_digest)
+
+    with pytest.raises(error.TKeyLoadError):
+        tkey.load_app('/tmp/dummy_file')
+
+    firmware_probe.assert_called_once()
+
+
+def test_firmware_probe_fail(monkeypatch):
+    """
+    Assert that _firmware_probe returns False if status is NOK.
+
+    """
+    data = bytearray()
+
+    data.extend(map(ord, 'abcdefgh'))
+    data.extend(int.to_bytes(1337, length=4, byteorder='little'))
+
+    response = proto.create_frame(proto.rspNameVersion, 1, 2, data=data)
+    response[0] = response[0] | 1 << 2  # Set status NOK
+
+    mock_serial = create_mock_serial(is_open=True)
+
+    tkey = TKey('/dev/ttyDummy0')
+
+    mock_read = Mock(return_value=response)
+    monkeypatch.setattr(mock_serial, 'read', mock_read)
+
+    monkeypatch.setattr(tkey, 'conn', mock_serial)
+
+    assert not tkey._firmware_probe()
+
+
+def test_firmware_probe_success(monkeypatch):
+    """
+    Assert that _firmware_probe returns False if status is OK.
+
+    """
+    # Craft response payload for successful cmdNameVersion request
+    header = bytes([0b01010010])
+    response = bytes([proto.rspNameVersion.id])
+    data = bytearray(31)
+
+    # Return different values depending on what proto.read_frame() is reading.
+    # 1 = Header
+    # 2 = Response ID and data
+    #
+    def read_helper(size=None):
+        if size == 1:
+            return header
+        return response + data
+
+    mock_serial = create_mock_serial(is_open=True)
+
+    tkey = TKey('/dev/ttyDummy0')
+
+    monkeypatch.setattr(tkey, 'conn', mock_serial)
+
+    mock_read = Mock(side_effect=read_helper)
+    monkeypatch.setattr(mock_serial, 'read', mock_read)
+
+    assert tkey._firmware_probe()
 
 
 def test_class_repr():
