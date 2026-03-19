@@ -238,12 +238,15 @@ class TKey:
             reserved, vendor, pid, revision, serial
         )
 
-    def load_app(self, file: str, secret: Optional[str] = None) -> None:
+    def load_app(
+        self, file: str, secret: Optional[str] = None, force_full_uss: bool = False
+    ) -> None:
         """Load an application onto the device.
 
         Args:
             file: Path to a binary file to load.
-            secret: A user-supplied secret (USS) to send with the binary.
+            secret: A user-supplied secret (USS).
+            force_full_uss: Force sending a 32 byte USS digest. The default is 31 bytes.
 
         Raises:
             TKeyLoadError:
@@ -279,7 +282,11 @@ class TKey:
         data[4] = 0
         if secret is not None:
             data[4] = 1
-            data[5 : 5 + len(secret)] = bytes(secret, encoding='utf8')
+            secret_digest = blake2s(bytes(secret, encoding='utf-8')).digest()
+            if force_full_uss:
+                data[5 : 5 + 32] = secret_digest
+            else:
+                data[5 : 5 + 32] = secret_digest[1:] + b'\x00'
 
         response = proto.send_command(
             self.conn, proto.cmdLoadApp, proto.ENDPOINT_FW, 2, data
