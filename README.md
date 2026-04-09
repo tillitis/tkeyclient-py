@@ -6,8 +6,19 @@ This is a Python package for interacting with the Tillitis TKey.
 
 The goal is to implement the TKey protocol, including a small client.
 
-**Update:** As of 2024-05-08, the currently documented TKey protocol has been
-implemented.
+**Updates:** 
+
+- 2026-03-19: Breaking change in commit
+  ac7f7e5dbd76bed997da60680b4047c03f7a754c. The User Supplied Secret
+  is now hashed with BLAKE2s and the resulting digest sent when
+  loading an app.
+
+  **NOTE WELL**: The change means any program using this module with
+  an USS will now generate different TKey key material compared to
+  earlier versions.
+
+- As of 2024-05-08, the currently documented TKey protocol has been
+  implemented.
 
 ## TODO
 
