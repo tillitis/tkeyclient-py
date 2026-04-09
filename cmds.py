@@ -71,7 +71,7 @@ def load_app(args):
         secret = getpass.getpass(prompt='Enter secret: ')
 
     with TKey(get_device(args), connect=True) as tk:
-        tk.load_app(args.file, secret)
+        tk.load_app(args.file, secret, args.force_full_uss)
         logger.info('Application loaded: %s' % args.file)
 
 

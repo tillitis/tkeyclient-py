@@ -50,6 +50,12 @@ if __name__ == '__main__':
         dest='secret',
         help='Provide a user-supplied secret (USS)',
     )
+    cmd_load.add_argument(
+        '--force-full-uss',
+        action='store_true',
+        dest='force_full_uss',
+        help='Force sending a 32 byte USS digest. Default is 31 bytes.',
+    )
     cmd_load.add_argument('file', type=str)
     cmd_load.set_defaults(func=cmds.create_handler(cmds.load_app))
 

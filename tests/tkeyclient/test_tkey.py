@@ -310,7 +310,10 @@ def test_load_app_file_size_exception(mock_getsize, monkeypatch):
 
 @patch('os.path.getsize')
 @patch('builtins.open', new_callable=mock_open, read_data=b'1337')
-def test_load_app_with_user_secret(mock_fopen, mock_getsize, monkeypatch):
+@pytest.mark.parametrize('force_full_uss', (False, True))
+def test_load_app_with_user_secret(
+    mock_fopen, mock_getsize, monkeypatch, force_full_uss
+):
     """
     Assert that TKey.load_app() correctly loads the user secret
 
@@ -333,14 +336,20 @@ def test_load_app_with_user_secret(mock_fopen, mock_getsize, monkeypatch):
 
     monkeypatch.setattr(tkey, '_load_app_data', load_app_data)
 
-    tkey.load_app('/tmp/dummy_file', secret=secret)
+    tkey.load_app('/tmp/dummy_file', secret=secret, force_full_uss=force_full_uss)
 
     data = send_command.call_args.args[4]
 
-    secret_data = data[5:][: len(secret)]
+    secret_data = data[5 : 5 + 32]
+
+    secret_digest = blake2s(secret.encode('utf-8')).digest()
+    if force_full_uss:
+        expected_secret_data = secret_digest
+    else:
+        expected_secret_data = secret_digest[1:] + b'\x00'
 
     assert len(data) == 127
-    assert secret == bytes(secret_data).decode('utf-8')
+    assert expected_secret_data == secret_data
 
 
 @patch('os.path.getsize')
